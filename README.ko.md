@@ -155,7 +155,7 @@ Read this and tell me why it's not just another boilerplate: https://raw.githubu
 |   🔌   | **Claude Code 호환성**                                   | 기존 훅, 명령어, 스킬, MCP, 플러그인? 전부 여기서 그대로 돌아갑니다.                                                                                                                                                     |
 |   🎯   | **스킬 내장 MCP**                                        | 스킬이 자기만의 MCP 서버를 들고 다닙니다. 컨텍스트가 부풀어 오르지 않습니다.                                                                                                                                             |
 |   📋   | **Prometheus 플래너**                                    | 인터뷰 모드로 코드 한 줄 만지기 전에 전략적인 계획부터 세웁니다.                                                                                                                                                         |
-|   🔍   | **`/init-deep`**                                         | 프로젝트 전체에 걸쳐 계층적인 `AGENTS.md` 파일을 자동 생성합니다. 토큰 효율과 에이전트 성능 둘 다 잡습니다.                                                                                                              |
+|   🔍   | **`/init-deep`**                                         | 프로젝트 전체에 걸쳐 계층적인 `GEMINI.md` 파일을 자동 생성합니다. 토큰 효율과 에이전트 성능 둘 다 잡습니다.                                                                                                              |
 
 ### 기강 잡힌 에이전트 (Discipline Agents)
 
@@ -232,15 +232,15 @@ Grok Code Fast 1 기준으로 성공률이 **6.7% → 68.3%** 로 올랐습니�
 
 ### 깊은 초기화. `/init-deep`
 
-`/init-deep`을 실행하세요. 계층적인 `AGENTS.md` 파일을 알아서 만들어줍니다:
+`/init-deep`을 실행하세요. 계층적인 `GEMINI.md` 파일을 알아서 만들어줍니다:
 
 ```
 project/
-├── AGENTS.md              ← 프로젝트 전체 컨텍스트
+├── GEMINI.md              ← 프로젝트 전체 컨텍스트
 ├── src/
-│   ├── AGENTS.md          ← src 전용 컨텍스트
+│   ├── GEMINI.md          ← src 전용 컨텍스트
 │   └── components/
-│       └── AGENTS.md      ← 컴포넌트 전용 컨텍스트
+│       └── GEMINI.md      ← 컴포넌트 전용 컨텍스트
 ```
 
 에이전트가 알아서 관련된 컨텍스트만 쏙쏙 읽어갑니다. 수동으로 관리할 필요가 없습니다.

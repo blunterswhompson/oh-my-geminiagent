@@ -157,7 +157,7 @@ Even only with following subscriptions, ultrawork will work well (this project i
 |   🔌   | **Claude Code Compatible**                               | Your hooks, commands, skills, MCPs, and plugins? All work here.                                                                                                                                                  |
 |   🎯   | **Skill-Embedded MCPs**                                  | Skills carry their own MCP servers. No context bloat.                                                                                                                                                            |
 |   📋   | **Prometheus Planner**                                   | Interview-mode strategic planning before any execution.                                                                                                                                                          |
-|   🔍   | **`/init-deep`**                                         | Auto-generates hierarchical `AGENTS.md` files throughout your project. Great for both token efficiency and your agent's performance                                                                              |
+|   🔍   | **`/init-deep`**                                         | Auto-generates hierarchical `GEMINI.md` files throughout your project. Great for both token efficiency and your agent's performance                                                                              |
 
 ### Discipline Agents
 
@@ -234,15 +234,15 @@ Grok Code Fast 1: **6.7% → 68.3%** success rate. Just from changing the edit t
 
 ### Deep Initialization. `/init-deep`
 
-Run `/init-deep`. It generates hierarchical `AGENTS.md` files:
+Run `/init-deep`. It generates hierarchical `GEMINI.md` files:
 
 ```
 project/
-├── AGENTS.md              ← project-wide context
+├── GEMINI.md              ← project-wide context
 ├── src/
-│   ├── AGENTS.md          ← src-specific context
+│   ├── GEMINI.md          ← src-specific context
 │   └── components/
-│       └── AGENTS.md      ← component-specific context
+│       └── GEMINI.md      ← component-specific context
 ```
 
 Agents auto-read relevant context. Zero manual management.
@@ -316,7 +316,7 @@ See full [Features Documentation](docs/reference/features.md).
 - **Background Agents**: Run multiple agents in parallel like a real dev team
 - **LSP & AST Tools**: Refactoring, rename, diagnostics, AST-aware code search
 - **Hash-anchored Edit Tool**: `LINE#ID` references validate content before applying every change. Surgical edits, zero stale-line errors
-- **Context Injection**: Auto-inject AGENTS.md, README.md, conditional rules
+- **Context Injection**: Auto-inject GEMINI.md, README.md, conditional rules
 - **Claude Code Compatibility**: Full hook system, commands, skills, agents, MCPs
 - **Built-in MCPs**: websearch (Exa), context7 (docs), grep_app (GitHub search)
 - **Session Tools**: List, read, search, and analyze session history

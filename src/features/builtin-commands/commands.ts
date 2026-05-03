@@ -26,7 +26,7 @@ function createBuiltinCommandDefinitions(
 ): Record<BuiltinCommandName, Omit<CommandDefinition, "name">> {
   return {
     "init-deep": {
-      description: "(builtin) Initialize hierarchical AGENTS.md knowledge base",
+      description: "(builtin) Initialize hierarchical GEMINI.md knowledge base",
       template: `<command-instruction>
 ${INIT_DEEP_TEMPLATE}
 </command-instruction>

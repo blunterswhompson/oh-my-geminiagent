@@ -9,7 +9,9 @@ const storageMaps = new Map<string, Set<string>>()
 
 mock.module("./constants", () => ({
   AGENTS_INJECTOR_STORAGE: "/tmp/directory-agents-injector-tests",
-  AGENTS_FILENAME: "AGENTS.md",
+  PRIMARY_CONTEXT_FILENAME: "GEMINI.md",
+  FALLBACK_CONTEXT_FILENAMES: ["AGENTS.md", "CLAUDE.md"],
+  AGENTS_FILENAME: "GEMINI.md",
 }))
 
 mock.module("./storage", () => ({
@@ -40,9 +42,9 @@ describe("processFilePathForAgentsInjection", () => {
   let srcDirectory = ""
   let componentsDirectory = ""
 
-  const rootAgentsContent = "# ROOT AGENTS\nroot-level directives"
-  const srcAgentsContent = "# SRC AGENTS\nsrc-level directives"
-  const componentsAgentsContent = "# COMPONENT AGENTS\ncomponents-level directives"
+  const rootAgentsContent = "# ROOT GEMINI\nroot-level directives"
+  const srcAgentsContent = "# SRC GEMINI\nsrc-level directives"
+  const componentsAgentsContent = "# COMPONENT GEMINI\ncomponents-level directives"
 
   beforeEach(() => {
     storageMaps.clear()
@@ -52,9 +54,9 @@ describe("processFilePathForAgentsInjection", () => {
     componentsDirectory = join(srcDirectory, "components")
 
     mkdirSync(componentsDirectory, { recursive: true })
-    writeFileSync(join(testRoot, "AGENTS.md"), rootAgentsContent)
-    writeFileSync(join(srcDirectory, "AGENTS.md"), srcAgentsContent)
-    writeFileSync(join(componentsDirectory, "AGENTS.md"), componentsAgentsContent)
+    writeFileSync(join(testRoot, "GEMINI.md"), rootAgentsContent)
+    writeFileSync(join(srcDirectory, "GEMINI.md"), srcAgentsContent)
+    writeFileSync(join(componentsDirectory, "GEMINI.md"), componentsAgentsContent)
     writeFileSync(join(componentsDirectory, "button.ts"), "export const button = true\n")
     writeFileSync(join(srcDirectory, "file.ts"), "export const sourceFile = true\n")
     writeFileSync(join(testRoot, "file.ts"), "export const rootFile = true\n")
@@ -64,7 +66,7 @@ describe("processFilePathForAgentsInjection", () => {
     rmSync(testRoot, { recursive: true, force: true })
   })
 
-  it("injects AGENTS.md content from file's parent directory into output", async () => {
+  it("injects GEMINI.md content from file's parent directory into output", async () => {
     // given
     const { processFilePathForAgentsInjection } = await import("./injector")
     const output = { title: "Read result", output: "base output", metadata: {} }
@@ -84,7 +86,7 @@ describe("processFilePathForAgentsInjection", () => {
     expect(output.output).toContain(srcAgentsContent)
   })
 
-  it("finds AGENTS.md files while walking up directories", async () => {
+  it("finds GEMINI.md files while walking up directories", async () => {
     // given
     const { findAgentsMdUp } = await import("./finder")
 
@@ -96,15 +98,15 @@ describe("processFilePathForAgentsInjection", () => {
 
     // then
     expect(agentsPaths).toEqual([
-      join(srcDirectory, "AGENTS.md"),
-      join(componentsDirectory, "AGENTS.md"),
+      join(srcDirectory, "GEMINI.md"),
+      join(componentsDirectory, "GEMINI.md"),
     ])
   })
 
-  it("skips root-level AGENTS.md", async () => {
+  it("skips root-level GEMINI.md", async () => {
     // given
-    rmSync(join(srcDirectory, "AGENTS.md"), { force: true })
-    rmSync(join(componentsDirectory, "AGENTS.md"), { force: true })
+    rmSync(join(srcDirectory, "GEMINI.md"), { force: true })
+    rmSync(join(componentsDirectory, "GEMINI.md"), { force: true })
     const { processFilePathForAgentsInjection } = await import("./injector")
     const output = { title: "Read result", output: "base output", metadata: {} }
 
@@ -123,7 +125,7 @@ describe("processFilePathForAgentsInjection", () => {
     expect(output.output).not.toContain("[Directory Context:")
   })
 
-  it("injects multiple AGENTS.md when walking up directory tree", async () => {
+  it("injects multiple GEMINI.md when walking up directory tree", async () => {
     // given
     const { processFilePathForAgentsInjection } = await import("./injector")
     const output = { title: "Read result", output: "base output", metadata: {} }
@@ -141,6 +143,40 @@ describe("processFilePathForAgentsInjection", () => {
     // then
     expect(output.output).toContain(srcAgentsContent)
     expect(output.output).toContain(componentsAgentsContent)
+  })
+
+  it("prioritizes GEMINI.md over fallback files", async () => {
+    // given
+    const { findAgentsMdUp } = await import("./finder")
+    const fallbackPath = join(srcDirectory, "AGENTS.md")
+    writeFileSync(fallbackPath, "# FALLBACK AGENTS")
+
+    // when
+    const agentsPaths = await findAgentsMdUp({
+      startDir: srcDirectory,
+      rootDir: testRoot,
+    })
+
+    // then
+    expect(agentsPaths).toEqual([join(srcDirectory, "GEMINI.md")])
+    expect(agentsPaths).not.toContain(fallbackPath)
+  })
+
+  it("falls back to AGENTS.md if GEMINI.md is missing", async () => {
+    // given
+    const { findAgentsMdUp } = await import("./finder")
+    rmSync(join(srcDirectory, "GEMINI.md"), { force: true })
+    const fallbackPath = join(srcDirectory, "AGENTS.md")
+    writeFileSync(fallbackPath, "# FALLBACK AGENTS")
+
+    // when
+    const agentsPaths = await findAgentsMdUp({
+      startDir: srcDirectory,
+      rootDir: testRoot,
+    })
+
+    // then
+    expect(agentsPaths).toEqual([fallbackPath])
   })
 
   it("does not re-inject already cached directories", async () => {

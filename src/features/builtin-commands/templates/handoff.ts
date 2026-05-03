@@ -121,7 +121,7 @@ IMPORTANT DECISIONS
 
 EXPLICIT CONSTRAINTS
 --------------------
-- [Verbatim constraints only - from user or existing AGENTS.md]
+- [Verbatim constraints only - from user or existing GEMINI.md]
 - If none, write: None
 
 CONTEXT FOR CONTINUATION

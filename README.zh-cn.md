@@ -162,7 +162,7 @@ Read this and tell me why it's not just another boilerplate: https://raw.githubu
 |   🔌   | **Claude Code 兼容**                                            | 你现有的 Hooks、命令、技能、MCP 和插件？全都能无缝迁移过来。                                                                                                                    |
 |   🎯   | **技能内嵌 MCP**                                                | 技能自带其所需的 MCP 服务器。按需开启，不会撑爆你的上下文窗口。                                                                                                                 |
 |   📋   | **Prometheus 规划师**                                           | 动手写代码前，先通过访谈模式做好战略规划。                                                                                                                                      |
-|   🔍   | **`/init-deep`**                                                | 在整个项目目录层级中自动生成 `AGENTS.md`。不仅省 Token，还能大幅提升 Agent 理解力。                                                                                             |
+|   🔍   | **`/init-deep`**                                                | 在整个项目目录层级中自动生成 `GEMINI.md`。不仅省 Token，还能大幅提升 Agent 理解力。                                                                                             |
 
 ### 自律军团 (Discipline Agents)
 
@@ -239,15 +239,15 @@ Agent 发起修改时，必须通过这些标签引用目标行。如果在此�
 
 ### 深度上下文初始化：`/init-deep`
 
-执行一次 `/init-deep`。它会为你生成一个树状的 `AGENTS.md` 文件系统：
+执行一次 `/init-deep`。它会为你生成一个树状的 `GEMINI.md` 文件系统：
 
 ```
 project/
-├── AGENTS.md              ← 全局级架构与约定
+├── GEMINI.md              ← 全局级架构与约定
 ├── src/
-│   ├── AGENTS.md          ← src 级规范
+│   ├── GEMINI.md          ← src 级规范
 │   └── components/
-│       └── AGENTS.md      ← 组件级详细说明
+│       └── GEMINI.md      ← 组件级详细说明
 ```
 
 Agent 会自动顺藤摸瓜加载对应的 Context，免去了你所有的手动喂喂喂的麻烦。

@@ -25,7 +25,7 @@ hooks/
 ├── compaction-context-injector/ # Injects context on compaction
 ├── compaction-todo-preserver/  # Preserves todos through compaction
 ├── delegate-task-retry/        # Retries failed delegations
-├── directory-agents-injector/  # Auto-injects AGENTS.md
+├── directory-agents-injector/  # Auto-injects GEMINI.md
 ├── directory-readme-injector/  # Auto-injects README.md
 ├── edit-error-recovery/        # Recovers from failures
 ├── hashline-edit-diff-enhancer/ # Enhanced diff output for hashline edits
@@ -95,10 +95,10 @@ hooks/
 |------|-------|---------|
 | commentChecker | tool.execute.after | Block AI-generated comment patterns |
 | toolOutputTruncator | tool.execute.after | Truncate oversized tool output |
-| directoryAgentsInjector | tool.execute.before | Inject dir AGENTS.md into context |
+| directoryAgentsInjector | tool.execute.before | Inject dir GEMINI.md into context |
 | directoryReadmeInjector | tool.execute.before | Inject dir README.md into context |
 | emptyTaskResponseDetector | tool.execute.after | Detect empty task responses |
-| rulesInjector | tool.execute.before | Conditional rules injection (AGENTS.md, config) |
+| rulesInjector | tool.execute.before | Conditional rules injection (GEMINI.md, config) |
 | tasksTodowriteDisabler | tool.execute.before | Disable TodoWrite when task system active |
 | writeExistingFileGuard | tool.execute.before | Require Read before Write on existing files |
 | bashFileReadGuard | tool.execute.before | Guard bash commands that read files |
@@ -114,7 +114,7 @@ hooks/
 |------|-------|---------|
 | claudeCodeHooks | messages.transform | Claude Code settings.json compatibility |
 | keywordDetector | messages.transform | Detect ultrawork/search/analyze modes |
-| contextInjectorMessagesTransform | messages.transform | Inject AGENTS.md/README.md into context |
+| contextInjectorMessagesTransform | messages.transform | Inject GEMINI.md/README.md into context |
 | thinkingBlockValidator | messages.transform | Validate thinking block structure |
 | toolPairValidator | messages.transform | Validate tool call/result pairs |
 
@@ -155,7 +155,7 @@ Self-referential dev loop via `/ralph-loop` command. State persisted in `.sisyph
 Detects modes from user input: ultrawork, search, analyze, prove-yourself. Injects mode-specific system prompts.
 
 ### rules-injector (19 files, ~1604 LOC)
-Conditional rules injection from AGENTS.md, config, skill rules. Evaluates conditions to determine which rules apply.
+Conditional rules injection from GEMINI.md, config, skill rules. Evaluates conditions to determine which rules apply.
 
 ## STANDALONE HOOKS (in src/hooks/ root)
 

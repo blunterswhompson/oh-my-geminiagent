@@ -4,7 +4,7 @@
 
 ## OVERVIEW
 
-19 files (~1604 LOC). The `rulesInjectorHook` — Tool Guard Tier hook that auto-injects AGENTS.md (and similar rule files) into context when a file in a directory is read, written, or edited. Proximity-based: closest rule file to the target path wins.
+19 files (~1604 LOC). The `rulesInjectorHook` — Tool Guard Tier hook that auto-injects GEMINI.md (and similar rule files) into context when a file in a directory is read, written, or edited. Proximity-based: closest rule file to the target path wins.
 
 ## HOW IT WORKS
 
@@ -26,8 +26,8 @@ tool.execute.after (read/write/edit/multiedit)
 |------|---------|
 | `hook.ts` | `createRulesInjectorHook()` — wires cache + injector, handles tool events |
 | `injector.ts` | `createRuleInjectionProcessor()` — orchestrates find → cache → inject |
-| `finder.ts` | `findRuleFiles()` + `calculateDistance()` — locate AGENTS.md near target path |
-| `rule-file-finder.ts` | Walk directory tree to find AGENTS.md / .rules files |
+| `finder.ts` | `findRuleFiles()` + `calculateDistance()` — locate GEMINI.md near target path |
+| `rule-file-finder.ts` | Walk directory tree to find GEMINI.md / .rules files |
 | `rule-file-scanner.ts` | Scan for rule files in a directory |
 | `matcher.ts` | Match file paths against rule file scope |
 | `rule-distance.ts` | Calculate path distance between file and rule file |
@@ -36,7 +36,7 @@ tool.execute.after (read/write/edit/multiedit)
 | `cache.ts` | `createSessionCacheStore()` — per-session injection dedup |
 | `storage.ts` | Persist injected paths across tool calls |
 | `parser.ts` | Parse rule file content |
-| `constants.ts` | Rule file names: `AGENTS.md`, `.rules`, `CLAUDE.md` |
+| `constants.ts` | Rule file names: `GEMINI.md`, `.rules`, `CLAUDE.md` |
 | `types.ts` | `RuleFile`, `InjectionResult`, `RuleFileScope` |
 
 ## RULE FILE DISCOVERY

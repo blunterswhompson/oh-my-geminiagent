@@ -1,6 +1,6 @@
 export const INIT_DEEP_TEMPLATE = `# /init-deep
 
-Generate hierarchical AGENTS.md files. Root + complexity-scored subdirectories.
+Generate hierarchical GEMINI.md files. Root + complexity-scored subdirectories.
 
 ## Usage
 
@@ -16,8 +16,8 @@ Generate hierarchical AGENTS.md files. Root + complexity-scored subdirectories.
 
 1. **Discovery + Analysis** (concurrent)
    - Fire background explore agents immediately
-   - Main session: bash structure + LSP codemap + read existing AGENTS.md
-2. **Score & Decide** - Determine AGENTS.md locations from merged findings
+   - Main session: bash structure + LSP codemap + read existing GEMINI.md / AGENTS.md / CLAUDE.md
+2. **Score & Decide** - Determine GEMINI.md locations from merged findings
 3. **Generate** - Root first, then subdirs in parallel
 4. **Review** - Deduplicate, trim, validate
 
@@ -27,7 +27,7 @@ Generate hierarchical AGENTS.md files. Root + complexity-scored subdirectories.
 TodoWrite([
   { id: "discovery", content: "Fire explore agents + LSP codemap + read existing", status: "pending", priority: "high" },
   { id: "scoring", content: "Score directories, determine locations", status: "pending", priority: "high" },
-  { id: "generate", content: "Generate AGENTS.md files (root + subdirs)", status: "pending", priority: "high" },
+  { id: "generate", content: "Generate GEMINI.md files (root + subdirs)", status: "pending", priority: "high" },
   { id: "review", content: "Deduplicate, validate, trim", status: "pending", priority: "medium" }
 ])
 \`\`\`
@@ -98,19 +98,19 @@ find . -type f -not -path '*/\\.*' -not -path '*/node_modules/*' | sed 's|/[^/]*
 # Code concentration by extension
 find . -type f \\( -name "*.py" -o -name "*.ts" -o -name "*.tsx" -o -name "*.js" -o -name "*.go" -o -name "*.rs" \\) -not -path '*/node_modules/*' | sed 's|/[^/]*$||' | sort | uniq -c | sort -rn | head -20
 
-# Existing AGENTS.md / CLAUDE.md
-find . -type f \\( -name "AGENTS.md" -o -name "CLAUDE.md" \\) -not -path '*/node_modules/*' 2>/dev/null
+# Existing context files
+find . -type f \\( -name "GEMINI.md" -o -name "AGENTS.md" -o -name "CLAUDE.md" \\) -not -path '*/node_modules/*' 2>/dev/null
 \`\`\`
 
-#### 2. Read Existing AGENTS.md
+#### 2. Read Existing Context Files
 \`\`\`
 For each existing file found:
   Read(filePath=file)
   Extract: key insights, conventions, anti-patterns
-  Store in EXISTING_AGENTS map
+  Store in EXISTING_CONTEXT map
 \`\`\`
 
-If \`--create-new\`: Read all existing first (preserve context) → then delete all → regenerate.
+If \`--create-new\`: Read all existing first (preserve context) → then delete all → regenerate as GEMINI.md.
 
 #### 3. LSP Codemap (if available)
 \`\`\`
@@ -164,13 +164,13 @@ for each task_id: background_output(task_id="...")
 | Score | Action |
 |-------|--------|
 | **Root (.)** | ALWAYS create |
-| **>15** | Create AGENTS.md |
+| **>15** | Create GEMINI.md |
 | **8-15** | Create if distinct domain |
 | **<8** | Skip (parent covers) |
 
 ### Output
 \`\`\`
-AGENTS_LOCATIONS = [
+GEMINI_LOCATIONS = [
   { path: ".", type: "root" },
   { path: "src/hooks", score: 18, reason: "high complexity" },
   { path: "src/api", score: 12, reason: "distinct domain" }
@@ -181,16 +181,16 @@ AGENTS_LOCATIONS = [
 
 ---
 
-## Phase 3: Generate AGENTS.md
+## Phase 3: Generate GEMINI.md
 
 **Mark "generate" as in_progress.**
 
 <critical>
-**File Writing Rule**: If AGENTS.md already exists at the target path → use \`Edit\` tool. If it does NOT exist → use \`Write\` tool.
+**File Writing Rule**: If GEMINI.md (or fallback AGENTS.md/CLAUDE.md) already exists at the target path → use \`Edit\` tool. If it does NOT exist → use \`Write\` tool to create GEMINI.md.
 NEVER use Write to overwrite an existing file. ALWAYS check existence first via \`Read\` or discovery results.
 </critical>
 
-### Root AGENTS.md (Full Treatment)
+### Root GEMINI.md (Full Treatment)
 
 \`\`\`markdown
 # PROJECT KNOWLEDGE BASE
@@ -239,14 +239,14 @@ NEVER use Write to overwrite an existing file. ALWAYS check existence first via 
 
 **Quality gates**: 50-150 lines, no generic advice, no obvious info.
 
-### Subdirectory AGENTS.md (Parallel)
+### Subdirectory GEMINI.md (Parallel)
 
 Launch writing tasks for each location:
 
 \`\`\`
-for loc in AGENTS_LOCATIONS (except root):
-  task(category="writing", load_skills=[], run_in_background=false, description="Generate AGENTS.md", prompt=\\\`
-    Generate AGENTS.md for: \${loc.path}
+for loc in GEMINI_LOCATIONS (except root):
+  task(category="writing", load_skills=[], run_in_background=false, description="Generate GEMINI.md", prompt=\\\`
+    Generate GEMINI.md for: \${loc.path}
     - Reason: \${loc.reason}
     - 30-80 lines max
     - NEVER repeat parent content
@@ -280,16 +280,16 @@ For each generated file:
 Mode: {update | create-new}
 
 Files:
-  [OK] ./AGENTS.md (root, {N} lines)
-  [OK] ./src/hooks/AGENTS.md ({N} lines)
+  [OK] ./GEMINI.md (root, {N} lines)
+  [OK] ./src/hooks/GEMINI.md ({N} lines)
 
 Dirs Analyzed: {N}
-AGENTS.md Created: {N}
-AGENTS.md Updated: {N}
+GEMINI.md Created: {N}
+GEMINI.md Updated: {N}
 
 Hierarchy:
-  ./AGENTS.md
-  └── src/hooks/AGENTS.md
+  ./GEMINI.md
+  └── src/hooks/GEMINI.md
 \`\`\`
 
 ---
@@ -299,7 +299,7 @@ Hierarchy:
 - **Static agent count**: MUST vary agents based on project size/depth
 - **Sequential execution**: MUST parallel (explore + LSP concurrent)
 - **Ignoring existing**: ALWAYS read existing first, even with --create-new
-- **Over-documenting**: Not every dir needs AGENTS.md
+- **Over-documenting**: Not every dir needs GEMINI.md
 - **Redundancy**: Child never repeats parent
 - **Generic content**: Remove anything that applies to ALL projects
 - **Verbose style**: Telegraphic or die`

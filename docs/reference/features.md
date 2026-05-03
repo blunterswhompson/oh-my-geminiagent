@@ -444,7 +444,7 @@ Commands are slash-triggered workflows that execute predefined templates.
 
 | Command              | Description                                                                                |
 | -------------------- | ------------------------------------------------------------------------------------------ |
-| `/init-deep`         | Initialize hierarchical AGENTS.md knowledge base                                           |
+| `/init-deep`         | Initialize hierarchical GEMINI.md knowledge base                                           |
 | `/ralph-loop`        | Start self-referential development loop until completion                                   |
 | `/ulw-loop`          | Start ultrawork loop - continues with ultrawork mode                                       |
 | `/cancel-ralph`      | Cancel active Ralph Loop                                                                   |
@@ -455,7 +455,7 @@ Commands are slash-triggered workflows that execute predefined templates.
 
 ### /init-deep
 
-**Purpose**: Generate hierarchical AGENTS.md files throughout your project
+**Purpose**: Generate hierarchical GEMINI.md files throughout your project
 
 **Usage**:
 
@@ -467,11 +467,11 @@ Creates directory-specific context files that agents automatically read:
 
 ```
 project/
-├── AGENTS.md              # Project-wide context
+├── GEMINI.md              # Project-wide context
 ├── src/
-│   ├── AGENTS.md          # src-specific context
+│   ├── GEMINI.md          # src-specific context
 │   └── components/
-│       └── AGENTS.md      # Component-specific context
+│       └── GEMINI.md      # Component-specific context
 ```
 
 ### /ralph-loop
@@ -736,7 +736,7 @@ Hooks intercept and modify behavior at key points in the agent lifecycle across 
 
 | Hook                            | Event                    | Description                                                                                                                                                                                               |
 | ------------------------------- | ------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **directory-agents-injector**   | PreToolUse + PostToolUse | Auto-injects AGENTS.md when reading files. Walks from file to project root, collecting all AGENTS.md files. Deprecated for OpenCode 1.1.37+ — Auto-disabled when native AGENTS.md injection is available. |
+| **directory-agents-injector**   | PreToolUse + PostToolUse | Auto-injects GEMINI.md when reading files. Walks from file to project root, collecting all GEMINI.md files. Deprecated for OpenCode 1.1.37+ — Auto-disabled when native GEMINI.md injection is available. |
 | **directory-readme-injector**   | PreToolUse + PostToolUse | Auto-injects README.md for directory context.                                                                                                                                                             |
 | **rules-injector**              | PreToolUse + PostToolUse | Injects rules from `.claude/rules/` when conditions match. Supports globs and alwaysApply.                                                                                                                |
 | **compaction-context-injector** | Event                    | Preserves critical context during session compaction.                                                                                                                                                     |
@@ -953,17 +953,17 @@ Run `bunx oh-my-opencode doctor` to see capability diagnostics including:
 
 ## Context Injection
 
-### Directory AGENTS.md
+### Directory GEMINI.md
 
-Auto-injects AGENTS.md when reading files. Walks from file directory to project root:
+Auto-injects GEMINI.md when reading files. Walks from file directory to project root:
 
 ```
 project/
-├── AGENTS.md              # Injected first
+├── GEMINI.md              # Injected first
 ├── src/
-│   ├── AGENTS.md          # Injected second
+│   ├── GEMINI.md          # Injected second
 │   └── components/
-│       ├── AGENTS.md      # Injected third
+│       ├── GEMINI.md      # Injected third
 │       └── Button.tsx     # Reading this injects all 3
 ```
 

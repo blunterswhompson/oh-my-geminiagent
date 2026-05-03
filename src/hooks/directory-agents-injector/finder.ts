@@ -1,7 +1,7 @@
 import { constants, promises as fsPromises } from "node:fs";
 import { dirname, isAbsolute, join, resolve } from "node:path";
 
-import { AGENTS_FILENAME } from "./constants";
+import { PRIMARY_CONTEXT_FILENAME, FALLBACK_CONTEXT_FILENAMES } from "./constants";
 
 export function resolveFilePath(rootDirectory: string, path: string): string | null {
   if (!path) return null;
@@ -17,17 +17,22 @@ export async function findAgentsMdUp(input: {
   let current = input.startDir;
 
   while (true) {
-    // Skip root AGENTS.md - OpenCode's system.ts already loads it via custom()
+    // Skip root GEMINI.md - OpenCode's system.ts already loads it via custom()
     // See: https://github.com/code-yeongyu/oh-my-openagent/issues/379
     const isRootDir = current === input.rootDir;
     if (!isRootDir) {
-      const agentsPath = join(current, AGENTS_FILENAME);
-      const exists = await fsPromises
-        .access(agentsPath, constants.F_OK)
-        .then(() => true)
-        .catch(() => false);
-      if (exists) {
-        found.push(agentsPath);
+      // Try primary first, then fallbacks
+      const candidates = [PRIMARY_CONTEXT_FILENAME, ...FALLBACK_CONTEXT_FILENAMES];
+      for (const filename of candidates) {
+        const agentsPath = join(current, filename);
+        const exists = await fsPromises
+          .access(agentsPath, constants.F_OK)
+          .then(() => true)
+          .catch(() => false);
+        if (exists) {
+          found.push(agentsPath);
+          break; // Closest match in this dir wins
+        }
       }
     }
 

@@ -8,7 +8,7 @@ import { getAgentListDisplayName } from "../shared/agent-display-names"
  * or introduce alternative ordering mechanisms (ZWSP prefixes, sort
  * shims, etc.) will be rejected.
  *
- * See: src/plugin-handlers/AGENTS.md for architectural context.
+ * See: src/plugin-handlers/GEMINI.md for architectural context.
  */
 export const CANONICAL_CORE_AGENT_ORDER = [
   "sisyphus",

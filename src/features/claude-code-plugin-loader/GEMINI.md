@@ -35,7 +35,7 @@ Called from `src/plugin-handlers/plugin-components-loader.ts` during Phase 2 of 
 | `plugin-discovery.ts` | Find plugin directories across scopes |
 | `plugin-manifest-parser.ts` | Parse `plugin.json` with Zod validation |
 | `command-loader.ts` | Load commands from `commands/` or `COMMANDS.md` |
-| `agent-loader.ts` | Load agents from `agents/` or `AGENTS.md` frontmatter |
+| `agent-loader.ts` | Load agents from `agents/` or `GEMINI.md` frontmatter |
 | `skill-loader.ts` | Load skills from `skills/` or `SKILL.md` |
 | `hook-loader.ts` | Load hooks config from `hooks/` or manifest |
 | `mcp-loader.ts` | Extract MCP server configs |

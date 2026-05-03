@@ -248,7 +248,7 @@ export function createMyHook(input: PluginInput) {
 - [ ] `bun run typecheck` passes
 - [ ] `bun run build` succeeds
 - [ ] Tested locally with OpenCode
-- [ ] Updated documentation if needed (README, AGENTS.md)
+- [ ] Updated documentation if needed (README, GEMINI.md)
 - [ ] No version changes in `package.json`
 
 ## Publishing
@@ -264,7 +264,7 @@ export function createMyHook(input: PluginInput) {
 
 ## Getting Help
 
-- **Project Knowledge**: Check `AGENTS.md` for detailed project documentation
+- **Project Knowledge**: Check `GEMINI.md` for detailed project documentation
 - **Code Patterns**: Review existing implementations in `src/`
 - **Issues**: Open an issue for bugs or feature requests
 - **Discussions**: Start a discussion for questions or ideas

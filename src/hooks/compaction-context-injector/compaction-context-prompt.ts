@@ -33,7 +33,7 @@ When summarizing this session, you MUST include the following sections in your s
 - **State & Variables**: Important variable names, configuration values, or runtime state relevant to ongoing work
 
 ## 6. Explicit Constraints (Verbatim Only)
-- Include ONLY constraints explicitly stated by the user or in existing AGENTS.md context
+- Include ONLY constraints explicitly stated by the user or in existing GEMINI.md context
 - Quote constraints verbatim (do not paraphrase)
 - Do NOT invent, add, or modify constraints
 - If no explicit constraints exist, write "None"

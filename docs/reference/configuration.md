@@ -513,7 +513,7 @@ Available hooks: `todo-continuation-enforcer`, `context-window-monitor`, `sessio
 
 **Notes:**
 
-- `directory-agents-injector` - auto-disabled on OpenCode 1.1.37+ (native AGENTS.md support)
+- `directory-agents-injector` - auto-disabled on OpenCode 1.1.37+ (native GEMINI.md support)
 - `no-sisyphus-gpt` - **do not disable**. It blocks incompatible GPT models for Sisyphus while allowing the dedicated GPT-5.4 prompt path.
 - `startup-toast` is a sub-feature of `auto-update-checker`. Disable just the toast by adding `startup-toast` to `disabled_hooks`.
 - `session-recovery` - automatically recovers from recoverable session errors (missing tool results, unavailable tools, thinking block violations). Shows toast notifications during recovery. Enable `experimental.auto_resume` for automatic retry after recovery.
