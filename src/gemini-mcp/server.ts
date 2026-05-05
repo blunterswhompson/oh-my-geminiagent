@@ -55,6 +55,10 @@ import {
   load_rules_definition,
   execute_load_rules,
 } from "./tools/load-rules";
+import {
+  task_rnd_definition,
+  execute_task_rnd,
+} from "./tools/task-rnd";
 
 const server = new Server(
   {
@@ -98,6 +102,7 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
       look_at_definition,
       delegate_task_definition,
       load_rules_definition,
+      task_rnd_definition,
     ],
   };
 });
@@ -142,6 +147,8 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
         return await execute_delegate_task(args);
       case "load_rules":
         return await execute_load_rules(args);
+      case "task_rnd":
+        return await execute_task_rnd(args);
       default:
         throw new Error(`Tool not found: ${name}`);
     }
