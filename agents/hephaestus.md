@@ -1,5 +1,6 @@
 ---
 name: hephaestus
+description: "Specialized agent: hephaestus"
 model: gpt-5.4
 ---
 <agent-identity>

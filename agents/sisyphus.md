@@ -1,5 +1,6 @@
 ---
 name: sisyphus
+description: "Specialized agent: sisyphus"
 model: claude-opus-4-7
 ---
 <agent-identity>

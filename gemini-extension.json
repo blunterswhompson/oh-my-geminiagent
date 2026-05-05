@@ -4,7 +4,10 @@
   "mcpServers": {
     "main-server": {
       "command": "bun",
-      "args": ["run", "${extensionPath}/src/gemini-mcp/server.ts"],
+      "args": [
+        "run",
+        "${extensionPath}/src/gemini-mcp/server.ts"
+      ],
       "cwd": "${extensionPath}"
     }
   },
@@ -71,5 +74,8 @@
       "envVar": "GEMINI_EXTENSION_DEFAULT_MODEL",
       "description": "The default model to use for sub-agents and fallback tasks."
     }
-  ]
+  ],
+  "hooks": {
+    "SessionStart": "src/gemini-hooks/model-resilience.ts"
+  }
 }

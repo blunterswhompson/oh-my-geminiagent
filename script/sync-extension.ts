@@ -60,6 +60,7 @@ async function sync() {
   for (const [name, factory] of Object.entries(agentFactories)) {
     const requirement = AGENT_MODEL_REQUIREMENTS[name as keyof typeof AGENT_MODEL_REQUIREMENTS];
     const preferredModel = (requirement as any)?.fallbackChain?.[0]?.model || "google/gemini-3.1-pro-preview";
+    const agentDescription = (requirement as any)?.description || `Specialized agent: ${name}`;
     let instructions = factory(preferredModel);
 
     // Inject R&D Library Index into Librarian
@@ -74,6 +75,7 @@ async function sync() {
     
     const content = `---
 name: ${name}
+description: "${agentDescription}"
 model: ${preferredModel}
 ---
 ${sanitize(instructions, name)}`;
@@ -112,12 +114,28 @@ ${sanitize(template, name)}
     const omomomoSource = readFileSync(join(process.cwd(), ".opencode/command/omomomo.md"), "utf8");
     const omomomoContent = `description = "Easter egg command"
 prompt = """
-${sanitize(omomomoSource)}
+${sanitize(omomomoSource, "omomomo")}
 """`;
     writeFileSync(join(commandsDir, "omomomo.toml"), omomomoContent);
     console.log("✅ Rendered commands/omomomo.toml");
   } catch (e) {
     console.warn("⚠️ Could not render omomomo.toml");
+  }
+
+  // 4. Update gemini-extension.json hooks
+  try {
+    const manifestPath = join(process.cwd(), "gemini-extension.json");
+    const manifest = JSON.parse(readFileSync(manifestPath, "utf8"));
+    
+    manifest.hooks = {
+      ...(manifest.hooks || {}),
+      SessionStart: "src/gemini-hooks/model-resilience.ts"
+    };
+    
+    writeFileSync(manifestPath, JSON.stringify(manifest, null, 2) + "\n");
+    console.log("✅ Synchronized gemini-extension.json hooks");
+  } catch (e) {
+    console.error("❌ Failed to update gemini-extension.json hooks:", e);
   }
 
   console.log("\n✨ Extension sync complete!");

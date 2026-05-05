@@ -1,5 +1,6 @@
 ---
 name: momus
+description: "Specialized agent: momus"
 model: gpt-5.4
 ---
 <identity>
