@@ -1,5 +1,5 @@
-description = "Start Sisyphus work session from Prometheus plan"
-argument_hint = "[plan-name] [--worktree <path>]"
+description = "Start work session"
+argument_hint = "[plan]"
 
 prompt = """
 You are starting a Sisyphus work session.

@@ -1,5 +1,5 @@
-description = "Intelligent refactoring command with LSP, AST-grep, architecture analysis, codemap, and TDD verification."
-argument_hint = "<refactoring-target> [--scope=<file|module|project>] [--strategy=<safe|aggressive>]"
+description = "Intelligent refactor"
+argument_hint = "<target>"
 
 prompt = """
 # Intelligent Refactor Command
@@ -562,7 +562,7 @@ All existing tests pass. No new errors introduced.
 - Skip lsp_diagnostics check after changes
 - Proceed with failing tests
 - Make changes without understanding impact
-- Use `as any`, `@ts-ignore`, `@ts-expect-error`
+- Use `as any`, `\\@ts-ignore`, `\\@ts-expect-error`
 - Delete tests to make them pass
 - Commit broken code
 - Refactor without understanding existing patterns
@@ -620,4 +620,5 @@ When you encounter deprecated methods/APIs during refactoring:
 <user-request>
 $ARGUMENTS
 </user-request>
+
 """

@@ -1,19 +1,34 @@
-description = "Start self-referential development loop until completion"
-argument_hint = '"task description" [--completion-promise=TEXT] [--max-iterations=N]'
+description = "Self-referential loop"
+argument_hint = ""
+
 prompt = """
-# Ralph Loop Command
+You are starting a Ralph Loop - a self-referential development loop that runs until task completion.
 
-You are entering a self-referential development loop. Your goal is to continue working on the provided task until it is fully completed and verified.
+## How Ralph Loop Works
 
-## Task
-$ARGUMENTS
+1. You will work on the task continuously
+2. When you believe the task is FULLY complete, output: `<promise>{{COMPLETION_PROMISE}}</promise>`
+3. If you don't output the promise, the loop will automatically inject another prompt to continue
+4. Maximum iterations: Configurable (default 100)
 
-## Instructions
-1. **Analyze**: Understand the current state of the task.
-2. **Execute**: Perform the next logical step in the implementation.
-3. **Verify**: Run tests and diagnostics to ensure the step is correct.
-4. **Iterate**: If the task is not yet complete (based on completion-promise or implicit goal), repeat the loop.
-5. **Exit**: Only stop when the task is verified complete or max iterations reached.
+## Rules
 
-Maintain a clear `TodoWrite` list throughout the loop to track progress.
+- Focus on completing the task fully, not partially
+- Don't output the completion promise until the task is truly done
+- Each iteration should make meaningful progress toward the goal
+- If stuck, try different approaches
+- Use todos to track your progress
+
+## Exit Conditions
+
+1. **Completion**: Output your completion promise tag when fully complete
+2. **Max Iterations**: Loop stops automatically at limit
+3. **Cancel**: User runs `/cancel-ralph` command
+
+## Your Task
+
+Parse the arguments below and begin working on the task. The format is:
+`"task description" [--completion-promise=TEXT] [--max-iterations=N] [--strategy=reset|continue]`
+
+Default completion promise is "DONE" and default max iterations is 100.
 """
