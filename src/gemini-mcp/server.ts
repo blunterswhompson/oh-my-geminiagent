@@ -38,6 +38,21 @@ import {
 import {
   execute_task_rnd,
 } from "./tools/task-rnd";
+import {
+  execute_task_rnd_command,
+} from "./tools/task-rnd-command";
+import {
+  execute_git_master,
+} from "./tools/git-master";
+import {
+  execute_research_tool,
+} from "./tools/research/index";
+import {
+  execute_background_tool,
+} from "./tools/background";
+import {
+  execute_skill,
+} from "./tools/skill";
 
 import { ALL_TOOL_DEFINITIONS } from "./tool-definitions";
 
@@ -105,6 +120,19 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
         return await execute_load_rules(args);
       case "task_rnd":
         return await execute_task_rnd(args);
+      case "task_rnd_command":
+        return await execute_task_rnd_command(args);
+      case "git_master":
+        return await execute_git_master(args);
+      case "grep_app":
+      case "context7":
+      case "websearch":
+        return await execute_research_tool(name, args);
+      case "background_output":
+      case "background_cancel":
+        return await execute_background_tool(name, args);
+      case "skill":
+        return await execute_skill(args);
       default:
         throw new Error(`Tool not found: ${name}`);
     }

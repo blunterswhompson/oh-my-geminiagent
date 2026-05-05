@@ -705,6 +705,216 @@
               "prompt"
             ]
           }
+        },
+        {
+          "name": "task_rnd_command",
+          "description": "Discover and execute specialized R&D slash commands (geminirnd/commands/).",
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "command_name": {
+                "type": "string",
+                "description": "Name of the R&D command (e.g., 'accessibility-audit')"
+              },
+              "prompt": {
+                "type": "string",
+                "description": "Additional context or arguments for the command"
+              }
+            },
+            "required": [
+              "command_name"
+            ]
+          }
+        },
+        {
+          "name": "git_master",
+          "description": "Advanced Git operations (atomic commits, rebase orchestration, history search).",
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "operation": {
+                "type": "string",
+                "enum": [
+                  "status",
+                  "commit",
+                  "rebase",
+                  "log"
+                ],
+                "description": "The git operation to perform"
+              },
+              "args": {
+                "type": "object",
+                "properties": {
+                  "message": {
+                    "type": "string",
+                    "description": "Commit message"
+                  },
+                  "files": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    },
+                    "description": "Files to stage"
+                  },
+                  "query": {
+                    "type": "string",
+                    "description": "Search query for history"
+                  },
+                  "target": {
+                    "type": "string",
+                    "description": "Target branch for rebase"
+                  }
+                }
+              }
+            },
+            "required": [
+              "operation"
+            ]
+          }
+        },
+        {
+          "name": "grep_app",
+          "description": "Search for code patterns on GitHub across millions of repositories using grep.app.",
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "query": {
+                "type": "string",
+                "description": "The search query (regex supported)"
+              },
+              "caseSensitive": {
+                "type": "boolean",
+                "description": "Whether the search should be case sensitive"
+              },
+              "regexp": {
+                "type": "boolean",
+                "description": "Whether the query should be treated as a regular expression"
+              }
+            },
+            "required": [
+              "query"
+            ]
+          }
+        },
+        {
+          "name": "context7",
+          "description": "Retrieve up-to-date documentation, API references, and code examples for any library or framework via Context7.",
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "operation": {
+                "type": "string",
+                "enum": [
+                  "query",
+                  "resolve"
+                ],
+                "description": "The documentation operation to perform"
+              },
+              "libraryName": {
+                "type": "string",
+                "description": "Name of the library (for 'resolve')"
+              },
+              "libraryId": {
+                "type": "string",
+                "description": "Context7 compatible library ID (for 'query')"
+              },
+              "query": {
+                "type": "string",
+                "description": "The specific documentation query"
+              }
+            },
+            "required": [
+              "operation"
+            ]
+          }
+        },
+        {
+          "name": "websearch",
+          "description": "Search the web for any topic using Exa or Tavily.",
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "query": {
+                "type": "string",
+                "description": "The search query"
+              },
+              "numResults": {
+                "type": "number",
+                "description": "Number of results to return (default: 5)"
+              },
+              "provider": {
+                "type": "string",
+                "enum": [
+                  "exa",
+                  "tavily"
+                ],
+                "description": "The search provider to use"
+              }
+            },
+            "required": [
+              "query"
+            ]
+          }
+        },
+        {
+          "name": "background_output",
+          "description": "Retrieve the output and transcript of a background sub-agent session.",
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "task_id": {
+                "type": "string",
+                "description": "The session ID or task ID of the background agent"
+              },
+              "limit": {
+                "type": "number",
+                "description": "Maximum number of messages to return"
+              },
+              "include_thinking": {
+                "type": "boolean",
+                "description": "Whether to include thinking blocks"
+              }
+            },
+            "required": [
+              "task_id"
+            ]
+          }
+        },
+        {
+          "name": "background_cancel",
+          "description": "Cancel a running background sub-agent session.",
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "task_id": {
+                "type": "string",
+                "description": "The session ID or task ID to cancel"
+              }
+            },
+            "required": [
+              "task_id"
+            ]
+          }
+        },
+        {
+          "name": "skill",
+          "description": "Load an expert skill/workflow from the library and inject it into your context.",
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "name": {
+                "type": "string",
+                "description": "Name of the skill to activate (e.g., 'github-triage')"
+              },
+              "user_message": {
+                "type": "string",
+                "description": "Your goal for using this skill"
+              }
+            },
+            "required": [
+              "name"
+            ]
+          }
         }
       ]
     }

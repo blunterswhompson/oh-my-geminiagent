@@ -42,6 +42,22 @@ import {
 import {
   task_rnd_definition,
 } from "./tools/task-rnd";
+import {
+  task_rnd_command_definition,
+} from "./tools/task-rnd-command";
+import {
+  git_master_definition,
+} from "./tools/git-master";
+import {
+  research_tool_definitions,
+} from "./tools/research/index";
+import {
+  background_output_definition,
+  background_cancel_definition,
+} from "./tools/background";
+import {
+  skill_definition,
+} from "./tools/skill";
 
 export const ALL_TOOL_DEFINITIONS = [
   interactive_bash_definition,
@@ -68,4 +84,10 @@ export const ALL_TOOL_DEFINITIONS = [
   delegate_task_definition,
   load_rules_definition,
   task_rnd_definition,
+  task_rnd_command_definition,
+  git_master_definition,
+  ...research_tool_definitions,
+  background_output_definition,
+  background_cancel_definition,
+  skill_definition,
 ];
