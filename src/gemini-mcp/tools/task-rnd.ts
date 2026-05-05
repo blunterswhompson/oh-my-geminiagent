@@ -41,7 +41,7 @@ export async function execute_task_rnd(args: any) {
     return {
       content: [{ 
         type: "text", 
-        text: `Error: R&D agent '${agent_name}' not found. Did you mean one of these?\n${fuzzyFiles.map(f => `- ${basename(f, ".md")}`).join("\n")}` 
+        text: `Error: R&D agent '${agent_name}' not found. Did you mean one of these?\n${fuzzyFiles.map((f: string) => `- ${basename(f, ".md")}`).join("\n")}` 
       }],
       isError: true
     };
