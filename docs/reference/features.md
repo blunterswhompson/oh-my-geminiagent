@@ -317,7 +317,7 @@ Oh-My-OpenAgent provides two browser automation providers, configurable via `bro
 mcp:
   playwright:
     command: npx
-    args: ["@playwright/mcp@latest"]
+    args: ["\@playwright/mcp@latest"]
 ```
 
 **Usage**:

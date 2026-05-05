@@ -1,0 +1,13 @@
+description = "Stop all active loops and continuation mechanisms for this session"
+prompt = """
+# Stop Continuation Command
+
+All active continuation mechanisms (loops, boulder states, and pending tasks) for this session are being terminated.
+
+## Actions Taken
+1. **Terminate Loops**: Any active `ralph-loop` or `ulw-loop` is stopped.
+2. **Clear Boulder State**: If a `.sisyphus/boulder.json` state exists, it is marked for cleanup.
+3. **Reset Tasks**: Ongoing delegated tasks are flagged to stop at the next checkpoint.
+
+You can now start a fresh line of investigation or implementation.
+"""

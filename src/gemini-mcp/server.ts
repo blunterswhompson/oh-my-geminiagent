@@ -1,0 +1,170 @@
+import { Server } from "@modelcontextprotocol/sdk/server/index.js";
+import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
+import {
+  CallToolRequestSchema,
+  ListToolsRequestSchema,
+} from "@modelcontextprotocol/sdk/types.js";
+
+import {
+  interactive_bash_definition,
+  execute_interactive_bash,
+} from "./tools/interactive-bash";
+import { grep_definition, execute_grep } from "./tools/grep/index";
+import { glob_definition, execute_glob } from "./tools/glob";
+import {
+  ast_grep_search_definition,
+  ast_grep_replace_definition,
+  execute_ast_grep,
+} from "./tools/ast-grep";
+import {
+  lsp_goto_definition_definition,
+  lsp_find_references_definition,
+  lsp_symbols_definition,
+  lsp_diagnostics_definition,
+  lsp_prepare_rename_definition,
+  lsp_rename_definition,
+  execute_lsp_tool,
+} from "./tools/lsp";
+import {
+  hashline_edit_definition,
+  execute_hashline_edit,
+} from "./tools/hashline-edit";
+import {
+  session_list_definition,
+  session_read_definition,
+  session_search_definition,
+  session_info_definition,
+  execute_session_manager_tool,
+} from "./tools/session-manager";
+import {
+  task_create_definition,
+  task_get_definition,
+  task_list_definition,
+  task_update_definition,
+  execute_task_tool,
+} from "./tools/task";
+import {
+  look_at_definition,
+  execute_look_at,
+} from "./tools/look-at";
+import {
+  delegate_task_definition,
+  execute_delegate_task,
+} from "./tools/delegate-task/index";
+import {
+  load_rules_definition,
+  execute_load_rules,
+} from "./tools/load-rules";
+
+const server = new Server(
+  {
+    name: "oh-my-geminiagent-tools",
+    version: "1.0.0",
+  },
+  {
+    capabilities: {
+      tools: {},
+    },
+  }
+);
+
+/**
+ * Tool handlers will be registered here in Phase 2.
+ */
+
+server.setRequestHandler(ListToolsRequestSchema, async () => {
+  return {
+    tools: [
+      interactive_bash_definition,
+      grep_definition,
+      glob_definition,
+      ast_grep_search_definition,
+      ast_grep_replace_definition,
+      lsp_goto_definition_definition,
+      lsp_find_references_definition,
+      lsp_symbols_definition,
+      lsp_diagnostics_definition,
+      lsp_prepare_rename_definition,
+      lsp_rename_definition,
+      hashline_edit_definition,
+      session_list_definition,
+      session_read_definition,
+      session_search_definition,
+      session_info_definition,
+      task_create_definition,
+      task_get_definition,
+      task_list_definition,
+      task_update_definition,
+      look_at_definition,
+      delegate_task_definition,
+      load_rules_definition,
+    ],
+  };
+});
+
+server.setRequestHandler(CallToolRequestSchema, async (request) => {
+  const { name, arguments: args } = request.params;
+
+  try {
+    switch (name) {
+      case "interactive_bash":
+        return await execute_interactive_bash(args);
+      case "grep":
+        return await execute_grep(args);
+      case "glob":
+        return await execute_glob(args);
+      case "ast_grep_search":
+        return await execute_ast_grep(args, false);
+      case "ast_grep_replace":
+        return await execute_ast_grep(args, true);
+      case "lsp_goto_definition":
+      case "lsp_find_references":
+      case "lsp_symbols":
+      case "lsp_diagnostics":
+      case "lsp_prepare_rename":
+      case "lsp_rename":
+        return await execute_lsp_tool(name, args);
+      case "hashline_edit":
+        return await execute_hashline_edit(args);
+      case "session_list":
+      case "session_read":
+      case "session_search":
+      case "session_info":
+        return await execute_session_manager_tool(name, args);
+      case "task_create":
+      case "task_get":
+      case "task_list":
+      case "task_update":
+        return await execute_task_tool(name, args);
+      case "look_at":
+        return await execute_look_at(args);
+      case "delegate_task":
+        return await execute_delegate_task(args);
+      case "load_rules":
+        return await execute_load_rules(args);
+      default:
+        throw new Error(`Tool not found: ${name}`);
+    }
+  } catch (error) {
+    return {
+      content: [
+        {
+          type: "text",
+          text: `Error: ${error instanceof Error ? error.message : String(error)}`,
+        },
+      ],
+      isError: true,
+    };
+  }
+});
+
+async function main() {
+  const transport = new StdioServerTransport();
+  await server.connect(transport);
+  console.error("Gemini MCP Server running on stdio");
+}
+
+main().catch((error) => {
+  console.error("Server error:", error);
+  process.exit(1);
+});

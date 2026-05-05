@@ -148,7 +148,7 @@ bunx oh-my-opencode run     # Non-interactive session
 | ci.yml | push/PR to master/dev | Tests (split: mock-heavy isolated + batch), typecheck, build, schema auto-commit |
 | publish.yml | manual dispatch | Version bump, dual npm publish (oh-my-opencode + oh-my-openagent), platform binaries, GitHub release |
 | publish-platform.yml | called by publish | 11 platform binaries via bun compile (darwin/linux/windows) |
-| sisyphus-agent.yml | @mention / dispatch | AI agent handles issues/PRs |
+| sisyphus-agent.yml | \@mention / dispatch | AI agent handles issues/PRs |
 | refresh-model-capabilities.yml | weekly schedule / dispatch | Auto-refresh model capabilities from models.dev API |
 | cla.yml | issue_comment/PR | CLA assistant for contributors |
 | lint-workflows.yml | push to .github/ | actionlint + shellcheck on workflow files |
@@ -161,7 +161,7 @@ bunx oh-my-opencode run     # Non-interactive session
 - Model fallback: per-agent chains in `shared/model-requirements.ts`, not a single global priority
 - Two fallback systems: `model-fallback` (proactive, chat.params) vs `runtime-fallback` (reactive, session.error)
 - Config migration: idempotent via `_migrations` tracking, creates timestamped backups before atomic writes
-- Build: bun build (ESM) + tsc --emitDeclarationOnly, externals: @ast-grep/napi
+- Build: bun build (ESM) + tsc --emitDeclarationOnly, externals: \@ast-grep/napi
 - Test setup: `test-setup.ts` preloaded via bunfig.toml, resets session/cache state between tests
 - Test split: `script/run-ci-tests.ts` auto-isolates files using `mock.module()` (plus `src/openclaw/__tests__/reply-listener-discord.test.ts`)
 - 104 barrel export files (index.ts) establish module boundaries

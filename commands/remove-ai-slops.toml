@@ -1,0 +1,57 @@
+description = "Remove AI-generated code smells and slop from changed files"
+prompt = """
+# Remove AI Slops Command
+
+## What this command does
+Analyzes all files changed in the current branch (compared to parent commit), removes AI-generated code smells in parallel, then critically reviews the changes to ensure safety and behavior preservation. Fixes any issues found during review.
+
+## Step 0: Task Planning
+
+Use TodoWrite to create the task list:
+1. Get changed files from branch
+2. Run ai-slop-remover on each file in parallel
+3. Critically review all changes
+4. Fix any issues found
+
+## Process
+
+### Phase 1: Identify Changed Files
+Detect the repository base branch dynamically, then get all changed files in the current branch:
+```bash
+BASE_BRANCH=$(git symbolic-ref refs/remotes/origin/HEAD 2>/dev/null | sed 's@^refs/remotes/origin/@@' || echo "main")
+git diff $(git merge-base "$BASE_BRANCH" HEAD)..HEAD --name-only
+```
+
+### Phase 2: Parallel AI Slop Removal
+For each changed file, spawn an agent in parallel using the native sub-agent mechanism with instructions to remove slop:
+
+```
+Agent: hephaestus
+Prompt: Remove AI slops (excessive comments, over-abstraction, generic names like data/result, redundant logs) from: {file_path}. Preserve all functional logic.
+```
+
+### Phase 3: Critical Review
+Perform a critical review with the following checklist:
+
+**Safety Verification**:
+- [ ] No functional logic was accidentally removed
+- [ ] All error handling is preserved
+- [ ] Type hints remain correct and complete
+- [ ] Import statements are still valid
+
+**Behavior Preservation**:
+- [ ] Return values unchanged
+- [ ] Side effects unchanged
+- [ ] Exception behavior unchanged
+
+### Phase 4: Final Summary
+```
+## AI Slop Removal Summary
+
+### Files Processed
+- [List files]
+
+### Final Status
+[CLEAN / ISSUES FIXED / REQUIRES ATTENTION]
+```
+"""

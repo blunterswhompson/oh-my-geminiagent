@@ -1,0 +1,19 @@
+description = "Start self-referential development loop until completion"
+argument_hint = '"task description" [--completion-promise=TEXT] [--max-iterations=N]'
+prompt = """
+# Ralph Loop Command
+
+You are entering a self-referential development loop. Your goal is to continue working on the provided task until it is fully completed and verified.
+
+## Task
+$ARGUMENTS
+
+## Instructions
+1. **Analyze**: Understand the current state of the task.
+2. **Execute**: Perform the next logical step in the implementation.
+3. **Verify**: Run tests and diagnostics to ensure the step is correct.
+4. **Iterate**: If the task is not yet complete (based on completion-promise or implicit goal), repeat the loop.
+5. **Exit**: Only stop when the task is verified complete or max iterations reached.
+
+Maintain a clear `TodoWrite` list throughout the loop to track progress.
+"""

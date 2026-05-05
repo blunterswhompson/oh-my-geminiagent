@@ -62,7 +62,7 @@ State-first tmux integration:
 | Skill | Size | MCP | Tools |
 |-------|------|-----|-------|
 | git-master | 1111 LOC | — | Bash |
-| playwright | 312 LOC | @playwright/mcp | — |
+| playwright | 312 LOC | \@playwright/mcp | — |
 | agent-browser | (in playwright.ts) | — | Bash(agent-browser:*) |
 | playwright-cli | 268 LOC | — | Bash(playwright-cli:*) |
 | dev-browser | 221 LOC | — | Bash |

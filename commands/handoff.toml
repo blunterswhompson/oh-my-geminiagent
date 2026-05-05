@@ -1,0 +1,29 @@
+description = "Create a detailed context summary for continuing work in a new session"
+argument_hint = "[goal]"
+prompt = """
+# Handoff Command
+
+Create a comprehensive summary of the current session state to allow another agent (or yourself in a new session) to continue the work seamlessly.
+
+## Context
+Goal: $ARGUMENTS
+
+## Output Format
+```markdown
+# Work Handoff
+
+## Current Status
+- [Completed items]
+- [In-progress items]
+- [Next immediate steps]
+
+## Critical Context
+- [Key files modified]
+- [Architectural decisions made]
+- [Known issues or blockers]
+
+## Verification
+- [Passing tests]
+- [LSP state]
+```
+"""

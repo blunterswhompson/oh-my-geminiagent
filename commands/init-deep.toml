@@ -1,0 +1,58 @@
+description = "Initialize or update hierarchical AGENTS.md knowledge base files"
+argument_hint = "[--create-new] [--max-depth=N]"
+prompt = """
+# /init-deep
+
+Generate hierarchical AGENTS.md files for the root and complex subdirectories.
+
+## Workflow
+
+1. **Discovery**: Fire background explore agents to understand project structure, conventions, and entry points.
+2. **Analysis**: Perform bash structural analysis (directory depth, file counts) and read existing AGENTS.md/CLAUDE.md files.
+3. **Scoring**: Determine AGENTS.md locations based on file count, symbol density, and complexity.
+4. **Generation**: Create or update AGENTS.md files using a consistent template including OVERVIEW, STRUCTURE, WHERE TO LOOK, and CONVENTIONS.
+
+## Phase 1: Discovery (Parallel)
+
+Launch multiple explore agents:
+- Agent 1: Project structure and language patterns
+- Agent 2: Entry points and main files
+- Agent 3: Config files and conventions
+- Agent 4: Build/CI workflows
+- Agent 5: Test patterns
+
+## Phase 2: Structural Analysis
+
+```bash
+# Get directory stats
+find . -type d -not -path '*/.*' -not -path '*/node_modules/*' | awk -F/ '{print NF-1}' | sort -n | uniq -c
+# Get top directories by file count
+find . -type f -not -path '*/.*' -not -path '*/node_modules/*' | sed 's|/[^/]*$||' | sort | uniq -c | sort -rn | head -20
+```
+
+## Phase 3: File Generation
+
+For each identified location:
+- If AGENTS.md exists → Edit it to update content.
+- If AGENTS.md doesn't exist → Write a new one.
+
+## root AGENTS.md Template:
+```markdown
+# PROJECT KNOWLEDGE BASE
+
+**Generated:** {TIMESTAMP}
+
+## OVERVIEW
+{what + core stack}
+
+## STRUCTURE
+{root}/
+├── {dir}/    # {purpose}
+
+## WHERE TO LOOK
+| Task | Location | Notes |
+
+## COMMANDS
+{dev/test/build}
+```
+"""

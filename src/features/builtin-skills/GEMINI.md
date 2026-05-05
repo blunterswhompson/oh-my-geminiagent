@@ -30,7 +30,7 @@ builtin-skills/
 | Skill | LOC | MCP | Purpose |
 |-------|-----|-----|---------|
 | **git-master** | 1111 | -- | Atomic commits, rebase, history search |
-| **playwright** | 312 | @playwright/mcp | Browser automation via MCP |
+| **playwright** | 312 | \@playwright/mcp | Browser automation via MCP |
 | **playwright-cli** | 268 | -- | Browser automation via CLI |
 | **agent-browser** | (in playwright.ts) | -- | Browser via agent-browser tool |
 | **dev-browser** | 221 | -- | Persistent page state browser |
@@ -41,7 +41,7 @@ builtin-skills/
 ## BROWSER VARIANT SELECTION
 
 Config `browser_automation_engine` selects which browser skill loads:
-- `"playwright"` (default) -> playwright with @playwright/mcp
+- `"playwright"` (default) -> playwright with \@playwright/mcp
 - `"playwright-cli"` -> CLI-based playwright
 - `"agent-browser"` -> agent-browser tool
 

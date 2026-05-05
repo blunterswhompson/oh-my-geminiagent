@@ -1,0 +1,75 @@
+{
+  "name": "oh-my-geminiagent",
+  "version": "1.0.0",
+  "mcpServers": {
+    "main-server": {
+      "command": "bun",
+      "args": ["run", "${extensionPath}/src/gemini-mcp/server.ts"],
+      "cwd": "${extensionPath}"
+    }
+  },
+  "contextFileName": "GEMINI.md",
+  "agents": {
+    "sisyphus": {
+      "path": "agents/sisyphus.md",
+      "description": "Primary orchestrator and senior software engineer. Use for high-level reasoning, research, and delegation."
+    },
+    "sisyphus-junior": {
+      "path": "agents/sisyphus-junior.md",
+      "description": "Lightweight orchestrator for mid-sized tasks and direct implementation coordination."
+    },
+    "multimodal-looker": {
+      "path": "agents/multimodal-looker.md",
+      "description": "Specialized analyst for high-detail image, PDF, and file analysis. Use when you need to 'look' at an asset."
+    },
+    "oracle": {
+      "path": "agents/oracle.md",
+      "description": "Strategic technical advisor for architecture, debugging hard problems, and deep reasoning."
+    },
+    "librarian": {
+      "path": "agents/librarian.md",
+      "description": "Documentation and API specialist. Use to find implementation examples and official library docs."
+    },
+    "metis": {
+      "path": "agents/metis.md",
+      "description": "Pre-planning consultant. Analyzes requests for ambiguity and over-engineering before planning."
+    },
+    "prometheus": {
+      "path": "agents/prometheus.md",
+      "description": "Planning specialist. Creates detailed, atomic, executable work plans in .sisyphus/plans/."
+    },
+    "hephaestus": {
+      "path": "agents/hephaestus.md",
+      "description": "Implementation specialist. Executes granular tasks with precision following architectural patterns."
+    },
+    "atlas": {
+      "path": "agents/atlas.md",
+      "description": "Master orchestrator. Coordinates multi-step plans by delegating and verifying sub-agent work."
+    },
+    "momus": {
+      "path": "agents/momus.md",
+      "description": "Plan reviewer. Verifies that work plans are executable and references are valid."
+    },
+    "explore": {
+      "path": "agents/explore.md",
+      "description": "Codebase search specialist. Answers where things are implemented and finds code patterns."
+    }
+  },
+  "commands": {
+    "refactor": "commands/refactor.toml",
+    "start-work": "commands/start-work.toml",
+    "init-deep": "commands/init-deep.toml",
+    "remove-ai-slops": "commands/remove-ai-slops.toml",
+    "ralph-loop": "commands/ralph-loop.toml",
+    "handoff": "commands/handoff.toml",
+    "stop-continuation": "commands/stop-continuation.toml",
+    "omomomo": "commands/omomomo.toml"
+  },
+  "settings": [
+    {
+      "name": "Default Model",
+      "envVar": "GEMINI_EXTENSION_DEFAULT_MODEL",
+      "description": "The default model to use for sub-agents and fallback tasks."
+    }
+  ]
+}
