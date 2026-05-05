@@ -29,6 +29,30 @@ const sanitize = (text: string | undefined, name: string) => {
   return text.replace(/@/g, "\\\\@");
 };
 
+const NATIVE_ORCHESTRATION_GUIDE = `
+
+---
+
+## NATIVE ORCHESTRATION & R&D ROUTING (2026 Mandate)
+
+You are now equipped with native orchestration capabilities. Use these over manual research or generic delegation.
+
+### 1. R&D Routing (\`task_rnd\`)
+The R&D library (\`geminirnd/\`) contains highly specialized expert profiles.
+- **Rule**: Before starting complex implementation, research, or domain-specific work, use \`task_rnd\` to find a specialized expert.
+- **Workflow**: \`task_rnd(agent_name="...", prompt="...")\` → Follow the returned instructions to invoke the native sub-agent (e.g., \`@generalist\`).
+
+### 2. Native Multi-Agent Workflows
+Prefer native Gemini CLI sub-agents (@oracle, @hephaestus, @librarian, etc.) for non-trivial sub-tasks.
+- Use \`delegate_task\` as a bridge to prepare native agent calls.
+- Parallelize work by using \`run_in_background=true\` for exploration and documentation tasks.
+
+### 3. Verification & Diagnostics
+After any code modification:
+- You MUST run \`lsp_diagnostics\` immediately.
+- Use \`look_at\` for UI/UX verification if applicable.
+`;
+
 async function sync() {
   console.log("🚀 Synchronizing Gemini Extension components...");
 
@@ -62,6 +86,11 @@ async function sync() {
     const preferredModel = (requirement as any)?.fallbackChain?.[0]?.model || "google/gemini-3.1-pro-preview";
     const agentDescription = (requirement as any)?.description || `Specialized agent: ${name}`;
     let instructions = factory(preferredModel);
+
+    // Inject Native Orchestration Guide into Sisyphus variants
+    if (name === "sisyphus" || name === "sisyphus-junior") {
+      instructions += NATIVE_ORCHESTRATION_GUIDE;
+    }
 
     // Inject R&D Library Index into Librarian
     if (name === "librarian") {
@@ -119,6 +148,21 @@ ${sanitize(omomomoSource, "omomomo")}
     console.log("✅ Rendered commands/omomomo.toml");
   } catch (e) {
     console.warn("⚠️ Could not render omomomo.toml");
+  }
+
+  // 4. Update gemini-extension.json tools
+  try {
+    const { ALL_TOOL_DEFINITIONS } = await import("../src/gemini-mcp/tool-definitions");
+    const manifestPath = join(process.cwd(), "gemini-extension.json");
+    const manifest = JSON.parse(readFileSync(manifestPath, "utf8"));
+    
+    if (manifest.mcpServers && manifest.mcpServers["main-server"]) {
+      manifest.mcpServers["main-server"].tools = ALL_TOOL_DEFINITIONS;
+      writeFileSync(manifestPath, JSON.stringify(manifest, null, 2) + "\n");
+      console.log("✅ Synchronized gemini-extension.json tools");
+    }
+  } catch (e) {
+    console.error("❌ Failed to update gemini-extension.json tools:", e);
   }
 
   console.log("\n✨ Extension sync complete!");

@@ -12,53 +12,34 @@ import {
 import { grep_definition, execute_grep } from "./tools/grep/index";
 import { glob_definition, execute_glob } from "./tools/glob";
 import {
-  ast_grep_search_definition,
-  ast_grep_replace_definition,
   execute_ast_grep,
 } from "./tools/ast-grep";
 import {
-  lsp_goto_definition_definition,
-  lsp_find_references_definition,
-  lsp_symbols_definition,
-  lsp_diagnostics_definition,
-  lsp_prepare_rename_definition,
-  lsp_rename_definition,
   execute_lsp_tool,
 } from "./tools/lsp";
 import {
-  hashline_edit_definition,
   execute_hashline_edit,
 } from "./tools/hashline-edit";
 import {
-  session_list_definition,
-  session_read_definition,
-  session_search_definition,
-  session_info_definition,
   execute_session_manager_tool,
 } from "./tools/session-manager";
 import {
-  task_create_definition,
-  task_get_definition,
-  task_list_definition,
-  task_update_definition,
   execute_task_tool,
 } from "./tools/task";
 import {
-  look_at_definition,
   execute_look_at,
 } from "./tools/look-at";
 import {
-  delegate_task_definition,
   execute_delegate_task,
 } from "./tools/delegate-task/index";
 import {
-  load_rules_definition,
   execute_load_rules,
 } from "./tools/load-rules";
 import {
-  task_rnd_definition,
   execute_task_rnd,
 } from "./tools/task-rnd";
+
+import { ALL_TOOL_DEFINITIONS } from "./tool-definitions";
 
 const server = new Server(
   {
@@ -78,32 +59,7 @@ const server = new Server(
 
 server.setRequestHandler(ListToolsRequestSchema, async () => {
   return {
-    tools: [
-      interactive_bash_definition,
-      grep_definition,
-      glob_definition,
-      ast_grep_search_definition,
-      ast_grep_replace_definition,
-      lsp_goto_definition_definition,
-      lsp_find_references_definition,
-      lsp_symbols_definition,
-      lsp_diagnostics_definition,
-      lsp_prepare_rename_definition,
-      lsp_rename_definition,
-      hashline_edit_definition,
-      session_list_definition,
-      session_read_definition,
-      session_search_definition,
-      session_info_definition,
-      task_create_definition,
-      task_get_definition,
-      task_list_definition,
-      task_update_definition,
-      look_at_definition,
-      delegate_task_definition,
-      load_rules_definition,
-      task_rnd_definition,
-    ],
+    tools: ALL_TOOL_DEFINITIONS,
   };
 });
 

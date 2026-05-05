@@ -8,7 +8,705 @@
         "run",
         "${extensionPath}/src/gemini-mcp/server.ts"
       ],
-      "cwd": "${extensionPath}"
+      "cwd": "${extensionPath}",
+      "tools": [
+        {
+          "name": "interactive_bash",
+          "description": "WARNING: This is TMUX ONLY. Pass tmux subcommands directly (without 'tmux' prefix).\n\nExamples: new-session -d -s omo-dev, send-keys -t omo-dev \"vim\" Enter\n\nFor TUI apps needing ongoing interaction (vim, htop, pudb). One-shot commands → use Bash with &.",
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "tmux_command": {
+                "type": "string",
+                "description": "The tmux command to execute (without 'tmux' prefix)"
+              }
+            },
+            "required": [
+              "tmux_command"
+            ]
+          }
+        },
+        {
+          "name": "grep",
+          "description": "Search for a pattern in the codebase using ripgrep. Use for text search when semantic search is not needed.",
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "pattern": {
+                "type": "string",
+                "description": "The regex pattern to search for"
+              },
+              "include": {
+                "type": "string",
+                "description": "Glob pattern for files to include"
+              },
+              "exclude": {
+                "type": "string",
+                "description": "Glob pattern for files to exclude"
+              },
+              "context": {
+                "type": "number",
+                "description": "Number of context lines to show"
+              }
+            },
+            "required": [
+              "pattern"
+            ]
+          }
+        },
+        {
+          "name": "glob",
+          "description": "Fast file pattern matching tool. Supports glob patterns like \"**/*.js\" or \"src/**/*.ts\". Returns matching file paths.",
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "pattern": {
+                "type": "string",
+                "description": "The glob pattern to match files against"
+              },
+              "path": {
+                "type": "string",
+                "description": "The directory to search in"
+              }
+            },
+            "required": [
+              "pattern"
+            ]
+          }
+        },
+        {
+          "name": "ast_grep_search",
+          "description": "Search code patterns across filesystem using AST-aware matching. Supports 25 languages. Use meta-variables: $VAR (single node), $$$ (multiple nodes). Patterns must be complete AST nodes (valid code).",
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "pattern": {
+                "type": "string",
+                "description": "AST pattern with meta-variables ($VAR, $$$)"
+              },
+              "lang": {
+                "type": "string",
+                "enum": [
+                  "bash",
+                  "c",
+                  "cpp",
+                  "csharp",
+                  "css",
+                  "elixir",
+                  "go",
+                  "haskell",
+                  "html",
+                  "java",
+                  "javascript",
+                  "json",
+                  "kotlin",
+                  "lua",
+                  "nix",
+                  "php",
+                  "python",
+                  "ruby",
+                  "rust",
+                  "scala",
+                  "solidity",
+                  "swift",
+                  "typescript",
+                  "tsx",
+                  "yaml"
+                ],
+                "description": "Target language"
+              },
+              "paths": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "description": "Paths to search (default: ['.'])"
+              },
+              "globs": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "description": "Include/exclude globs"
+              },
+              "context": {
+                "type": "number",
+                "description": "Context lines around match"
+              }
+            },
+            "required": [
+              "pattern",
+              "lang"
+            ]
+          }
+        },
+        {
+          "name": "ast_grep_replace",
+          "description": "Replace code patterns across filesystem with AST-aware rewriting. Dry-run by default. Use meta-variables in rewrite to preserve matched content.",
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "pattern": {
+                "type": "string",
+                "description": "AST pattern to match"
+              },
+              "rewrite": {
+                "type": "string",
+                "description": "Replacement pattern (can use $VAR from pattern)"
+              },
+              "lang": {
+                "type": "string",
+                "enum": [
+                  "bash",
+                  "c",
+                  "cpp",
+                  "csharp",
+                  "css",
+                  "elixir",
+                  "go",
+                  "haskell",
+                  "html",
+                  "java",
+                  "javascript",
+                  "json",
+                  "kotlin",
+                  "lua",
+                  "nix",
+                  "php",
+                  "python",
+                  "ruby",
+                  "rust",
+                  "scala",
+                  "solidity",
+                  "swift",
+                  "typescript",
+                  "tsx",
+                  "yaml"
+                ],
+                "description": "Target language"
+              },
+              "paths": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "description": "Paths to search"
+              },
+              "globs": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "description": "Include/exclude globs"
+              },
+              "dryRun": {
+                "type": "boolean",
+                "description": "Preview changes without applying (default: true)"
+              }
+            },
+            "required": [
+              "pattern",
+              "rewrite",
+              "lang"
+            ]
+          }
+        },
+        {
+          "name": "lsp_goto_definition",
+          "description": "Jump to symbol definition. Find WHERE something is defined.",
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "filePath": {
+                "type": "string"
+              },
+              "line": {
+                "type": "number",
+                "description": "1-based line number"
+              },
+              "character": {
+                "type": "number",
+                "description": "0-based character offset"
+              }
+            },
+            "required": [
+              "filePath",
+              "line",
+              "character"
+            ]
+          }
+        },
+        {
+          "name": "lsp_find_references",
+          "description": "Find all references to a symbol at a specific location.",
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "filePath": {
+                "type": "string"
+              },
+              "line": {
+                "type": "number",
+                "description": "1-based line number"
+              },
+              "character": {
+                "type": "number",
+                "description": "0-based character offset"
+              }
+            },
+            "required": [
+              "filePath",
+              "line",
+              "character"
+            ]
+          }
+        },
+        {
+          "name": "lsp_symbols",
+          "description": "List symbols in a file or search workspace-wide.",
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "filePath": {
+                "type": "string",
+                "description": "File path to get symbols for"
+              },
+              "query": {
+                "type": "string",
+                "description": "Optional search query for workspace symbols"
+              }
+            },
+            "required": [
+              "filePath"
+            ]
+          }
+        },
+        {
+          "name": "lsp_diagnostics",
+          "description": "Get errors, warnings, and hints from the language server for a file or directory.",
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "filePath": {
+                "type": "string",
+                "description": "File or directory path to check"
+              },
+              "severity": {
+                "type": "string",
+                "enum": [
+                  "error",
+                  "warning",
+                  "information",
+                  "hint",
+                  "all"
+                ],
+                "description": "Filter by severity level"
+              }
+            },
+            "required": [
+              "filePath"
+            ]
+          }
+        },
+        {
+          "name": "lsp_prepare_rename",
+          "description": "Check if a symbol can be renamed and get its current range.",
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "filePath": {
+                "type": "string"
+              },
+              "line": {
+                "type": "number"
+              },
+              "character": {
+                "type": "number"
+              }
+            },
+            "required": [
+              "filePath",
+              "line",
+              "character"
+            ]
+          }
+        },
+        {
+          "name": "lsp_rename",
+          "description": "Rename a symbol across the workspace.",
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "filePath": {
+                "type": "string"
+              },
+              "line": {
+                "type": "number"
+              },
+              "character": {
+                "type": "number"
+              },
+              "newName": {
+                "type": "string",
+                "description": "The new name for the symbol"
+              }
+            },
+            "required": [
+              "filePath",
+              "line",
+              "character",
+              "newName"
+            ]
+          }
+        },
+        {
+          "name": "hashline_edit",
+          "description": "Edit files using LINE#ID format for precise, safe modifications.\n\nWORKFLOW:\n1. Read target file/range and copy exact LINE#ID tags.\n2. Pick the smallest operation per logical mutation site.\n3. Submit one edit call per file with all related operations.\n4. If same file needs another call, re-read first.\n5. Use anchors as \"LINE#ID\" only (never include trailing \"|content\").\n\n<must>\n- SNAPSHOT: All edits in one call reference the ORIGINAL file state. Do NOT adjust line numbers for prior edits in the same call - the system applies them bottom-up automatically.\n- replace removes lines pos..end (inclusive) and inserts lines in their place. Lines BEFORE pos and AFTER end are UNTOUCHED - do NOT include them in lines. If you do, they will appear twice.\n- lines must contain ONLY the content that belongs inside the consumed range. Content after end survives unchanged.\n- Tags MUST be copied exactly from read output or >>> mismatch output. NEVER guess tags.\n- Batch = multiple operations in edits[], NOT one big replace covering everything. Each operation targets the smallest possible change.\n- lines must contain plain replacement text only (no LINE#ID prefixes, no diff + markers).\n</must>\n\n<operations>\nLINE#ID FORMAT:\n  Each line reference must be in \"{line_number}#{hash_id}\" format where:\n  {line_number}: 1-based line number\n  {hash_id}: Two CID letters from the set ZPMQVRWSNKTXJBYH\n\nOPERATION CHOICE:\n  replace with pos only -> replace one line at pos\n  replace with pos+end -> replace range pos..end inclusive as a block (ranges MUST NOT overlap across edits)\n  append with pos/end anchor -> insert after that anchor\n  prepend with pos/end anchor -> insert before that anchor\n  append/prepend without anchors -> EOF/BOF insertion (also creates missing files)\n\nCONTENT FORMAT:\n  lines can be a string (single line) or string[] (multi-line, preferred).\n  If you pass a multi-line string, it is split by real newline characters.\n  lines: null or lines: [] with replace -> delete those lines.\n\nFILE MODES:\n  delete=true deletes file and requires edits=[] with no rename\n  rename moves final content to a new path and removes old path\n\nRULES:\n  1. Minimize scope: one logical mutation site per operation.\n  2. Preserve formatting: keep indentation, punctuation, line breaks, trailing commas, brace style.\n  3. Prefer insertion over neighbor rewrites: anchor to structural boundaries (}, ], },), not interior property lines.\n  4. No no-ops: replacement content must differ from current content.\n  5. Touch only requested code: avoid incidental edits.\n  6. Use exact current tokens: NEVER rewrite approximately.\n  7. For swaps/moves: prefer one range operation over multiple single-line operations.\n  8. Anchor to structural lines (function/class/brace), NEVER blank lines.\n  9. Re-read after each successful edit call before issuing another on the same file.\n</operations>\n\n<examples>\nGiven this file content after read:\n  10#VK|function hello() {\n  11#XJ|  console.log(\"hi\");\n  12#MB|  console.log(\"bye\");\n  13#QR|}\n  14#TN|\n  15#WS|function world() {\n\nSingle-line replace (change line 11):\n  { op: \"replace\", pos: \"11#XJ\", lines: [\"  console.log(\\\"hello\\\");\"] }\n  Result: line 11 replaced. Lines 10, 12-15 unchanged.\n\nRange replace (rewrite function body, lines 11-12):\n  { op: \"replace\", pos: \"11#XJ\", end: \"12#MB\", lines: [\"  return \\\"hello world\\\";\"] }\n  Result: lines 11-12 removed, replaced by 1 new line. Lines 10, 13-15 unchanged.\n\nDelete a line:\n  { op: \"replace\", pos: \"12#MB\", lines: null }\n  Result: line 12 removed. Lines 10-11, 13-15 unchanged.\n\nInsert after line 13 (between functions):\n  { op: \"append\", pos: \"13#QR\", lines: [\"\", \"function added() {\", \"  return true;\", \"}\"] }\n  Result: 4 new lines inserted after line 13. All existing lines unchanged.\n\nBAD - lines extend past end (DUPLICATES line 13):\n  { op: \"replace\", pos: \"11#XJ\", end: \"12#MB\", lines: [\"  return \\\"hi\\\";\", \"}\"] }\n  Line 13 is \"}\" which already exists after end. Including \"}\" in lines duplicates it.\n  CORRECT: { op: \"replace\", pos: \"11#XJ\", end: \"12#MB\", lines: [\"  return \\\"hi\\\";\"] }\n</examples>\n\n<auto>\nBuilt-in autocorrect (you do NOT need to handle these):\n  Merged lines are auto-expanded back to original line count.\n  Indentation is auto-restored from original lines.\n  BOM and CRLF line endings are preserved automatically.\n  Hashline prefixes and diff markers in text are auto-stripped.\n  Boundary echo lines (duplicating adjacent surviving lines) are auto-stripped.\n</auto>\n\nRECOVERY (when >>> mismatch error appears):\n  Copy the updated LINE#ID tags shown in the error output directly.\n  Re-read only if the needed tags are missing from the error snippet.",
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "filePath": {
+                "type": "string",
+                "description": "Absolute path to the file to edit"
+              },
+              "delete": {
+                "type": "boolean",
+                "description": "Delete file instead of editing"
+              },
+              "rename": {
+                "type": "string",
+                "description": "Rename output file path after edits"
+              },
+              "edits": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "op": {
+                      "type": "string",
+                      "enum": [
+                        "replace",
+                        "append",
+                        "prepend"
+                      ]
+                    },
+                    "pos": {
+                      "type": "string",
+                      "description": "Primary anchor in LINE#ID format"
+                    },
+                    "end": {
+                      "type": "string",
+                      "description": "Range end anchor in LINE#ID format"
+                    },
+                    "lines": {
+                      "oneOf": [
+                        {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          }
+                        },
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    }
+                  },
+                  "required": [
+                    "op"
+                  ]
+                },
+                "description": "Array of edit operations to apply"
+              }
+            },
+            "required": [
+              "filePath",
+              "edits"
+            ]
+          }
+        },
+        {
+          "name": "session_list",
+          "description": "List all OpenCode sessions with optional filtering.\n\nReturns a list of available session IDs with metadata including message count, date range, and agents used.\n\nArguments:\n- limit (optional): Maximum number of sessions to return\n- from_date (optional): Filter sessions from this date (ISO 8601 format)\n- to_date (optional): Filter sessions until this date (ISO 8601 format)\n\nExample output:\n| Session ID | Messages | First | Last | Agents |\n|------------|----------|-------|------|--------|\n| ses_abc123 | 45 | 2025-12-20 | 2025-12-24 | build, oracle |\n| ses_def456 | 12 | 2025-12-19 | 2025-12-19 | build |",
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "limit": {
+                "type": "number",
+                "description": "Maximum number of sessions to return"
+              },
+              "from_date": {
+                "type": "string",
+                "description": "Filter sessions from this date (ISO 8601 format)"
+              },
+              "to_date": {
+                "type": "string",
+                "description": "Filter sessions until this date (ISO 8601 format)"
+              },
+              "project_path": {
+                "type": "string",
+                "description": "Filter sessions by project path (default: current working directory)"
+              }
+            }
+          }
+        },
+        {
+          "name": "session_read",
+          "description": "Read messages and history from an OpenCode session.\n\nReturns a formatted view of session messages with role, timestamp, and content. Optionally includes todos and transcript data.\n\nArguments:\n- session_id (required): Session ID to read\n- include_todos (optional): Include todo list if available (default: false)\n- include_transcript (optional): Include transcript log if available (default: false)\n- limit (optional): Maximum number of messages to return (default: all)\n\nExample output:\nSession: ses_abc123\nMessages: 45\nDate Range: 2025-12-20 to 2025-12-24\n\n[Message 1] user (2025-12-20 10:30:00)\nHello, can you help me with...\n\n[Message 2] assistant (2025-12-20 10:30:15)\nOf course! Let me help you with...",
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "session_id": {
+                "type": "string",
+                "description": "Session ID to read"
+              },
+              "include_todos": {
+                "type": "boolean",
+                "description": "Include todo list if available (default: false)"
+              },
+              "include_transcript": {
+                "type": "boolean",
+                "description": "Include transcript log if available (default: false)"
+              },
+              "limit": {
+                "type": "number",
+                "description": "Maximum number of messages to return (default: all)"
+              }
+            },
+            "required": [
+              "session_id"
+            ]
+          }
+        },
+        {
+          "name": "session_search",
+          "description": "Search for content within OpenCode session messages.\n\nPerforms full-text search across session messages and returns matching excerpts with context.\n\nArguments:\n- query (required): Search query string\n- session_id (optional): Search within specific session only (default: all sessions)\n- case_sensitive (optional): Case-sensitive search (default: false)\n- limit (optional): Maximum number of results to return (default: 20)\n\nExample output:\nFound 3 matches across 2 sessions:\n\n[ses_abc123] Message msg_001 (user)\n...implement the **session manager** tool...\n\n[ses_abc123] Message msg_005 (assistant)\n...I'll create a **session manager** with full search...\n\n[ses_def456] Message msg_012 (user)\n...use the **session manager** to find...",
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "query": {
+                "type": "string",
+                "description": "Search query string"
+              },
+              "session_id": {
+                "type": "string",
+                "description": "Search within specific session only (default: all sessions)"
+              },
+              "case_sensitive": {
+                "type": "boolean",
+                "description": "Case-sensitive search (default: false)"
+              },
+              "limit": {
+                "type": "number",
+                "description": "Maximum number of results to return (default: 20)"
+              }
+            },
+            "required": [
+              "query"
+            ]
+          }
+        },
+        {
+          "name": "session_info",
+          "description": "Get metadata and statistics about an OpenCode session.\n\nReturns detailed information about a session including message count, date range, agents used, and available data sources.\n\nArguments:\n- session_id (required): Session ID to inspect\n\nExample output:\nSession ID: ses_abc123\nMessages: 45\nDate Range: 2025-12-20 10:30:00 to 2025-12-24 15:45:30\nDuration: 4 days, 5 hours\nAgents Used: build, oracle, librarian\nHas Todos: Yes (12 items, 8 completed)\nHas Transcript: Yes (234 entries)",
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "session_id": {
+                "type": "string",
+                "description": "Session ID to inspect"
+              }
+            },
+            "required": [
+              "session_id"
+            ]
+          }
+        },
+        {
+          "name": "task_create",
+          "description": "Create a new task for project orchestration. Returns task ID (T-{uuid}).",
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "subject": {
+                "type": "string",
+                "description": "Task subject"
+              },
+              "description": {
+                "type": "string",
+                "description": "Full task description"
+              },
+              "blockedBy": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "description": "Task IDs this task depends on"
+              }
+            },
+            "required": [
+              "subject"
+            ]
+          }
+        },
+        {
+          "name": "task_get",
+          "description": "Retrieve full task details by ID.",
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string",
+                "description": "Task ID (T-{uuid})"
+              }
+            },
+            "required": [
+              "id"
+            ]
+          }
+        },
+        {
+          "name": "task_list",
+          "description": "List active tasks (excluding completed/deleted).",
+          "inputSchema": {
+            "type": "object",
+            "properties": {}
+          }
+        },
+        {
+          "name": "task_update",
+          "description": "Update an existing task's status, subject, or description.",
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string",
+                "description": "Task ID"
+              },
+              "status": {
+                "type": "string",
+                "enum": [
+                  "pending",
+                  "in_progress",
+                  "completed",
+                  "deleted"
+                ]
+              },
+              "subject": {
+                "type": "string"
+              },
+              "description": {
+                "type": "string"
+              },
+              "addBlockedBy": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              }
+            },
+            "required": [
+              "id"
+            ]
+          }
+        },
+        {
+          "name": "look_at",
+          "description": "Focus on a specific file or image asset for detailed analysis. Use this when you need to 'see' something clearly (UI mockups, diagrams, PDFs).",
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "file_path": {
+                "type": "string",
+                "description": "Absolute path to the file to analyze"
+              },
+              "image_data": {
+                "type": "string",
+                "description": "Base64 encoded image data (if from clipboard)"
+              },
+              "goal": {
+                "type": "string",
+                "description": "What specific information to extract"
+              }
+            },
+            "required": [
+              "goal"
+            ]
+          }
+        },
+        {
+          "name": "delegate_task",
+          "description": "Spawn a specialized sub-agent (oracle, librarian, prometheus, etc.) to handle a specific task. Bridges to native Gemini CLI sub-agents.",
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "subagent_type": {
+                "type": "string",
+                "enum": [
+                  "oracle",
+                  "librarian",
+                  "metis",
+                  "prometheus",
+                  "hephaestus",
+                  "atlas",
+                  "momus",
+                  "explore"
+                ],
+                "description": "The type of specialized agent to spawn"
+              },
+              "prompt": {
+                "type": "string",
+                "description": "Full detailed instructions for the agent"
+              },
+              "task_id": {
+                "type": "string",
+                "description": "Optional: task ID to resume or reference"
+              }
+            },
+            "required": [
+              "subagent_type",
+              "prompt"
+            ]
+          }
+        },
+        {
+          "name": "load_rules",
+          "description": "Load project-specific and directory-specific rules from .sisyphus/rules/ and other standard locations.",
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "path": {
+                "type": "string",
+                "description": "The directory to load rules for (default: current directory)"
+              }
+            }
+          }
+        },
+        {
+          "name": "task_rnd",
+          "description": "Access specialized agents from the R&D library (geminirnd/). Returns instructions for a native sub-agent call.",
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "agent_name": {
+                "type": "string",
+                "description": "Name of the specialized R&D agent (e.g., 'backend-reliability-engineer')"
+              },
+              "prompt": {
+                "type": "string",
+                "description": "The specific task prompt"
+              }
+            },
+            "required": [
+              "agent_name",
+              "prompt"
+            ]
+          }
+        }
+      ]
     }
   },
   "contextFileName": "GEMINI.md",
