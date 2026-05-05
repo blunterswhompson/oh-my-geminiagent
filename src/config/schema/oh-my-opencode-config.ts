@@ -42,6 +42,8 @@ export const OhMyOpenCodeConfigSchema = z.object({
   mcp_env_allowlist: z.array(z.string()).optional(),
   /** Enable hashline_edit tool/hook integrations (default: false) */
   hashline_edit: z.boolean().optional(),
+  /** Enable R&D Library features from `geminirnd/` (default: false) */
+  feature_rnd_library: z.boolean().optional().default(false),
   /** Enable model fallback on API errors (default: false). Set to true to enable automatic model switching when model errors occur. */
   model_fallback: z.boolean().optional(),
   agents: AgentOverridesSchema.optional(),

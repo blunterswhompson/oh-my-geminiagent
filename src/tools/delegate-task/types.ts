@@ -67,6 +67,7 @@ export interface DelegateTaskToolOptions {
   agentOverrides?: AgentOverrides
   sisyphusAgentConfig?: SisyphusAgentConfig
   modelFallbackControllerAccessor?: ModelFallbackControllerAccessor
+  featureRndLibrary?: boolean
   onSyncSessionCreated?: (event: SyncSessionCreatedEvent) => Promise<void>
   syncPollTimeoutMs?: number
 }

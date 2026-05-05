@@ -8,6 +8,7 @@ import {
   loadProjectCommands,
   loadOpencodeGlobalCommands,
   loadOpencodeProjectCommands,
+  loadLibraryCommands,
 } from "../features/claude-code-command-loader";
 import { loadBuiltinCommands } from "../features/builtin-commands";
 import {
@@ -52,6 +53,7 @@ export async function applyCommandConfig(params: {
     projectCommands,
     opencodeGlobalCommands,
     opencodeProjectCommands,
+    libraryCommands,
     userSkills,
     globalAgentsSkills,
     projectSkills,
@@ -67,6 +69,9 @@ export async function applyCommandConfig(params: {
     includeClaudeCommands ? loadProjectCommands(params.ctx.directory) : Promise.resolve({}),
     loadOpencodeGlobalCommands(),
     loadOpencodeProjectCommands(params.ctx.directory),
+    params.pluginConfig.feature_rnd_library
+      ? loadLibraryCommands(params.ctx.directory)
+      : Promise.resolve({}),
     includeClaudeSkills ? loadUserSkills() : Promise.resolve({}),
     includeClaudeSkills ? loadGlobalAgentsSkills() : Promise.resolve({}),
     includeClaudeSkills ? loadProjectSkills(params.ctx.directory) : Promise.resolve({}),
@@ -78,6 +83,7 @@ export async function applyCommandConfig(params: {
   params.config.command = {
     ...builtinCommands,
     ...skillsToCommandDefinitionRecord(configSourceSkills),
+    ...libraryCommands,
     ...userCommands,
     ...userSkills,
     ...globalAgentsSkills,

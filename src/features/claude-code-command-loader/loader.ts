@@ -169,6 +169,12 @@ export async function loadOpencodeProjectCommands(directory?: string): Promise<R
   return commandsToRecord(allCommands.flat())
 }
 
+export async function loadLibraryCommands(directory?: string): Promise<Record<string, CommandDefinition>> {
+  const libraryCommandsDir = join(directory ?? process.cwd(), "geminirnd", "commands")
+  const commands = await loadCommandsFromDir(libraryCommandsDir, "library")
+  return commandsToRecord(commands)
+}
+
 export async function loadAllCommands(directory?: string): Promise<Record<string, CommandDefinition>> {
   const cacheKey = await getCommandLoaderCacheKey(directory)
   const cachedCommands = getCachedCommands(cacheKey)

@@ -7,6 +7,7 @@ import {
   createToolOutputTruncatorHook,
   createDirectoryAgentsInjectorHook,
   createDirectoryReadmeInjectorHook,
+  createDesignSystemInjectorHook,
   createEmptyTaskResponseDetectorHook,
   createRulesInjectorHook,
   createTasksTodowriteDisablerHook,
@@ -31,6 +32,7 @@ export type ToolGuardHooks = {
   toolOutputTruncator: ReturnType<typeof createToolOutputTruncatorHook> | null
   directoryAgentsInjector: ReturnType<typeof createDirectoryAgentsInjectorHook> | null
   directoryReadmeInjector: ReturnType<typeof createDirectoryReadmeInjectorHook> | null
+  designSystemInjector: ReturnType<typeof createDesignSystemInjectorHook> | null
   emptyTaskResponseDetector: ReturnType<typeof createEmptyTaskResponseDetectorHook> | null
   rulesInjector: ReturnType<typeof createRulesInjectorHook> | null
   tasksTodowriteDisabler: ReturnType<typeof createTasksTodowriteDisablerHook> | null
@@ -87,6 +89,11 @@ export function createToolGuardHooks(args: {
         createDirectoryReadmeInjectorHook(ctx, modelCacheState))
     : null
 
+  const designSystemInjector = isHookEnabled("design-system-injector")
+    ? safeHook("design-system-injector", () =>
+        createDesignSystemInjectorHook(ctx, modelCacheState))
+    : null
+
   const emptyTaskResponseDetector = isHookEnabled("empty-task-response-detector")
     ? safeHook("empty-task-response-detector", () => createEmptyTaskResponseDetectorHook(ctx))
     : null
@@ -138,6 +145,7 @@ export function createToolGuardHooks(args: {
     toolOutputTruncator,
     directoryAgentsInjector,
     directoryReadmeInjector,
+    designSystemInjector,
     emptyTaskResponseDetector,
     rulesInjector,
     tasksTodowriteDisabler,

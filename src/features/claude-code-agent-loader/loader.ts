@@ -6,7 +6,7 @@ import type { AgentScope, ClaudeCodeAgentConfig, LoadedAgent } from "./types"
 import { getOpenCodeConfigDir } from "../../shared/opencode-config-dir"
 import { parseMarkdownAgentFile } from "./agent-definitions-loader"
 
-function loadAgentsFromDir(agentsDir: string, scope: AgentScope): LoadedAgent[] {
+function loadAgentsFromDir(agentsDir: string, scope: AgentScope, recursive = false): LoadedAgent[] {
   if (!existsSync(agentsDir)) {
     return []
   }
@@ -15,10 +15,15 @@ function loadAgentsFromDir(agentsDir: string, scope: AgentScope): LoadedAgent[] 
   const agents: LoadedAgent[] = []
 
   for (const entry of entries) {
+    const fullPath = join(agentsDir, entry.name)
+    if (entry.isDirectory() && recursive) {
+      agents.push(...loadAgentsFromDir(fullPath, scope, recursive))
+      continue
+    }
+
     if (!isMarkdownFile(entry)) continue
 
-    const agentPath = join(agentsDir, entry.name)
-    const agent = parseMarkdownAgentFile(agentPath, scope)
+    const agent = parseMarkdownAgentFile(fullPath, scope)
 
     if (agent) {
       agents.push(agent)
@@ -65,6 +70,17 @@ export function loadOpencodeGlobalAgents(): Record<string, ClaudeCodeAgentConfig
 export function loadOpencodeProjectAgents(directory?: string): Record<string, ClaudeCodeAgentConfig> {
   const opencodeProjectDir = join(directory ?? process.cwd(), ".opencode", "agents")
   const agents = loadAgentsFromDir(opencodeProjectDir, "opencode-project")
+
+  const result: Record<string, ClaudeCodeAgentConfig> = Object.create(null)
+  for (const agent of agents) {
+    result[agent.name] = agent.config
+  }
+  return result
+}
+
+export function loadLibraryAgents(directory?: string): Record<string, ClaudeCodeAgentConfig> {
+  const libraryAgentsDir = join(directory ?? process.cwd(), "geminirnd", "agent")
+  const agents = loadAgentsFromDir(libraryAgentsDir, "library", true)
 
   const result: Record<string, ClaudeCodeAgentConfig> = Object.create(null)
   for (const agent of agents) {

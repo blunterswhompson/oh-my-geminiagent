@@ -1,4 +1,4 @@
-export type CommandScope = "user" | "project" | "opencode" | "opencode-project"
+export type CommandScope = "user" | "project" | "opencode" | "opencode-project" | "library"
 
 /**
  * Handoff definition for command workflows.

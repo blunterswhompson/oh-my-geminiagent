@@ -67,6 +67,17 @@ export interface DiscoverSkillsOptions {
   directory?: string
 }
 
+export async function loadLibrarySkills(directory?: string): Promise<Record<string, CommandDefinition>> {
+  const librarySkillsDir = join(directory ?? process.cwd(), "geminirnd", "skill")
+  const skills = await loadSkillsFromDir({ skillsDir: librarySkillsDir, scope: "library" })
+  return skillsToCommandDefinitionRecord(skills)
+}
+
+export async function discoverLibrarySkills(directory?: string): Promise<LoadedSkill[]> {
+  const librarySkillsDir = join(directory ?? process.cwd(), "geminirnd", "skill")
+  return loadSkillsFromDir({ skillsDir: librarySkillsDir, scope: "library" })
+}
+
 export async function discoverAllSkills(directory?: string): Promise<LoadedSkill[]> {
   const [opencodeProjectSkills, opencodeGlobalSkills, projectSkills, userSkills, agentsProjectSkills, agentsGlobalSkills] =
     await Promise.all([

@@ -13,6 +13,7 @@ import {
   discoverProjectAgentsSkills,
   discoverProjectClaudeSkills,
   discoverUserClaudeSkills,
+  discoverLibrarySkills,
 } from "../features/opencode-skill-loader";
 import { 
   loadProjectAgents, 
@@ -21,6 +22,7 @@ import {
   loadOpencodeProjectAgents,
   loadAgentDefinitions,
   readOpencodeConfigAgents,
+  loadLibraryAgents,
 } from "../features/claude-code-agent-loader";
 import type { PluginComponents } from "./plugin-components-loader";
 import { reorderAgentsByPriority } from "./agent-priority-order";
@@ -65,6 +67,7 @@ export async function applyAgentConfig(params: {
     discoveredOpencodeGlobalSkills,
     discoveredOpencodeProjectSkills,
     discoveredGlobalAgentsSkills,
+    discoveredLibrarySkills,
   ] = await Promise.all([
     discoverConfigSourceSkills({
       config: params.pluginConfig.skills,
@@ -80,6 +83,9 @@ export async function applyAgentConfig(params: {
     discoverOpencodeGlobalSkills(),
     discoverOpencodeProjectSkills(params.ctx.directory),
     includeClaudeSkillsForAwareness ? discoverGlobalAgentsSkills() : Promise.resolve([]),
+    params.pluginConfig.feature_rnd_library
+      ? discoverLibrarySkills(params.ctx.directory)
+      : Promise.resolve([]),
   ]);
 
   const allDiscoveredSkills = [
@@ -90,6 +96,7 @@ export async function applyAgentConfig(params: {
     ...discoveredOpencodeGlobalSkills,
     ...discoveredUserSkills,
     ...discoveredGlobalAgentsSkills,
+    ...discoveredLibrarySkills,
   ];
 
   const browserProvider =
@@ -104,6 +111,9 @@ export async function applyAgentConfig(params: {
   const projectAgents = includeClaudeAgents ? loadProjectAgents(params.ctx.directory) : {};
   const opencodeGlobalAgents = loadOpencodeGlobalAgents();
   const opencodeProjectAgents = loadOpencodeProjectAgents(params.ctx.directory);
+  const libraryAgents = params.pluginConfig.feature_rnd_library 
+    ? loadLibraryAgents(params.ctx.directory) 
+    : {};
   const rawPluginAgents = params.pluginComponents.agents;
 
   const agentDefinitionAgents = params.pluginConfig.agent_definitions
@@ -128,6 +138,7 @@ export async function applyAgentConfig(params: {
     ...Object.entries(projectAgents),
     ...Object.entries(opencodeGlobalAgents),
     ...Object.entries(opencodeProjectAgents),
+    ...Object.entries(libraryAgents),
     ...Object.entries(pluginAgents).filter(([, config]) => config !== undefined),
     ...Object.entries(agentDefinitionAgents),
     ...Object.entries(opencodeConfigAgents),
@@ -147,6 +158,7 @@ export async function applyAgentConfig(params: {
       project: Object.keys(projectAgents).length,
       opencodeGlobal: Object.keys(opencodeGlobalAgents).length,
       opencodeProject: Object.keys(opencodeProjectAgents).length,
+      library: Object.keys(libraryAgents).length,
       plugin: Object.keys(pluginAgents).length,
       agentDefinitions: Object.keys(agentDefinitionAgents).length,
       opencodeConfig: Object.keys(opencodeConfigAgents).length,
@@ -296,6 +308,10 @@ export async function applyAgentConfig(params: {
       opencodeProjectAgents,
       protectedBuiltinAgentNames,
     );
+    const filteredLibraryAgents = filterProtectedAgentOverrides(
+      libraryAgents,
+      protectedBuiltinAgentNames,
+    );
     const filteredAgentDefinitionAgents = filterProtectedAgentOverrides(
       agentDefinitionAgents,
       protectedBuiltinAgentNames,
@@ -314,6 +330,7 @@ export async function applyAgentConfig(params: {
       ),
       // Precedence: later entries override earlier (project > global > user > plugin)
       ...filterDisabledAgents(filteredPluginAgents),
+      ...filterDisabledAgents(filteredLibraryAgents),
       ...filterDisabledAgents(filteredUserAgents),
       ...filterDisabledAgents(filteredOpencodeGlobalAgents),
       ...filterDisabledAgents(filteredProjectAgents),
@@ -348,6 +365,10 @@ export async function applyAgentConfig(params: {
       opencodeProjectAgents,
       protectedBuiltinAgentNames,
     );
+    const filteredLibraryAgents = filterProtectedAgentOverrides(
+      libraryAgents,
+      protectedBuiltinAgentNames,
+    );
     const filteredAgentDefinitionAgents = filterProtectedAgentOverrides(
       agentDefinitionAgents,
       protectedBuiltinAgentNames,
@@ -372,6 +393,7 @@ export async function applyAgentConfig(params: {
       ...builtinAgents,
       // Precedence: later entries override earlier (project > global > user > plugin)
       ...filterDisabledAgents(filteredPluginAgents),
+      ...filterDisabledAgents(filteredLibraryAgents),
       ...filterDisabledAgents(filteredUserAgents),
       ...filterDisabledAgents(filteredOpencodeGlobalAgents),
       ...filterDisabledAgents(filteredProjectAgents),

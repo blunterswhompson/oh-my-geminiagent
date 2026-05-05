@@ -51,6 +51,7 @@ task(subagent_type="explore", load_skills=[], description="Find conventions", ru
 task(subagent_type="explore", load_skills=[], description="Find anti-patterns", run_in_background=true, prompt="Anti-patterns: FIND 'DO NOT', 'NEVER', 'ALWAYS', 'DEPRECATED' comments → LIST forbidden patterns")
 task(subagent_type="explore", load_skills=[], description="Explore build/CI", run_in_background=true, prompt="Build/CI: FIND .github/workflows, Makefile → REPORT non-standard patterns")
 task(subagent_type="explore", load_skills=[], description="Find test patterns", run_in_background=true, prompt="Test patterns: FIND test configs, test structure → REPORT unique conventions")
+task(subagent_type="explore", load_skills=[], description="Detect UI/Frontend", run_in_background=true, prompt="UI Detection: CHECK package.json for (react, vue, svelte, astro, angular, solid, tailwind, bootstrap, mui, shadcn, ant-design, daisyui, chakra-ui) and SEARCH for (.tsx, .jsx, .vue, .svelte, .astro, .css, .scss, .less, .styl) → REPORT design system presence")
 \`\`\`
 
 <dynamic-agents>
@@ -238,6 +239,52 @@ NEVER use Write to overwrite an existing file. ALWAYS check existence first via 
 \`\`\`
 
 **Quality gates**: 50-150 lines, no generic advice, no obvious info.
+
+### DESIGN.md (Frontend/UI only)
+
+If Phase 1 detected UI presence (React, Vue, Tailwind, etc.) AND \`DESIGN.md\` does NOT exist at root:
+Create \`DESIGN.md\` at root with this template:
+
+\\\`\\\`\\\`markdown
+---
+name: {Project Name}
+colors:
+  primary: "#..."
+  secondary: "#..."
+typography:
+  font-family: "..."
+spacing:
+  base: 4
+rounded: "..."
+---
+
+# DESIGN SYSTEM
+
+## Overview
+{Design goals}
+
+## Colors
+{Palette description}
+
+## Typography
+{Font usage rules}
+
+## Layout & Spacing
+{Grid/Padding rules}
+
+## Components
+{Key UI elements}
+
+## Icons & Imagery
+{Style guide}
+
+## Do's and Don'ts
+- [ ] {Correct pattern}
+- [x] {Incorrect pattern}
+
+## References
+{Links to Figma/Docs}
+\\\`\\\`\\\`
 
 ### Subdirectory GEMINI.md (Parallel)
 

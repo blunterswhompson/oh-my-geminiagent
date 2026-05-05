@@ -31,7 +31,7 @@ export async function createTools(args: {
     pluginConfig,
   })
 
-  const availableCategories = createAvailableCategories(pluginConfig)
+  const availableCategories = createAvailableCategories(pluginConfig, ctx.directory)
 
   const { filteredTools, taskSystemEnabled } = createToolRegistry({
     ctx,

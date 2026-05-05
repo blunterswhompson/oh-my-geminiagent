@@ -1,3 +1,5 @@
+import { existsSync, readdirSync } from "fs"
+import { join } from "path"
 import type { CategoryConfig, CategoriesConfig } from "../../config/schema"
 import { DEFAULT_CATEGORIES, CATEGORY_PROMPT_APPENDS } from "./constants"
 import { resolveModel } from "../../shared/model-resolver"
@@ -11,6 +13,8 @@ export interface ResolveCategoryConfigOptions {
   inheritedModel?: string
   systemDefaultModel?: string
   availableModels?: Set<string>
+  directory?: string
+  featureRndLibrary?: boolean
 }
 
 export interface ResolveCategoryConfigResult {
@@ -28,14 +32,35 @@ export function resolveCategoryConfig(
   categoryName: string,
   options: ResolveCategoryConfigOptions
 ): ResolveCategoryConfigResult | null {
-  const { userCategories, inheritedModel: _inheritedModel, systemDefaultModel, availableModels } = options
+  const { userCategories, inheritedModel: _inheritedModel, systemDefaultModel, availableModels, directory, featureRndLibrary } = options
 
-  const defaultConfig = DEFAULT_CATEGORIES[categoryName]
+  let defaultConfig = DEFAULT_CATEGORIES[categoryName]
   const userConfig = userCategories?.[categoryName]
   const hasExplicitUserConfig = userConfig !== undefined
 
   if (userConfig?.disable) {
     return null
+  }
+
+  // Handle R&D Library categories if enabled
+  if (!defaultConfig && !userConfig && featureRndLibrary && directory) {
+    const libraryAgentsDir = join(directory, "geminirnd", "agent")
+    if (existsSync(libraryAgentsDir)) {
+      try {
+        const folders = readdirSync(libraryAgentsDir, { withFileTypes: true })
+          .filter(entry => entry.isDirectory())
+          .map(entry => entry.name)
+        
+        if (folders.includes(categoryName)) {
+          // Create a dynamic config for the library category
+          defaultConfig = {
+            description: `Library: ${categoryName}`,
+          }
+        }
+      } catch (error) {
+        log(`[resolveCategoryConfig] Failed to scan library agents directory: ${libraryAgentsDir}`, error)
+      }
+    }
   }
 
   const categoryReq = CATEGORY_MODEL_REQUIREMENTS[categoryName]
