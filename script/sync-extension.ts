@@ -76,7 +76,6 @@ async function sync() {
     const content = `---
 name: ${name}
 description: "${agentDescription}"
-model: ${preferredModel}
 ---
 ${sanitize(instructions, name)}`;
 
@@ -102,9 +101,9 @@ ${sanitize(instructions, name)}`;
     const content = `description = "${desc}"
 argument_hint = "${hint}"
 
-prompt = """
+prompt = '''
 ${sanitize(template, name)}
-"""`;
+'''`;
     writeFileSync(join(commandsDir, `${name}.toml`), content);
     console.log(`✅ Rendered commands/${name}.toml`);
   }
@@ -113,29 +112,13 @@ ${sanitize(template, name)}
   try {
     const omomomoSource = readFileSync(join(process.cwd(), ".opencode/command/omomomo.md"), "utf8");
     const omomomoContent = `description = "Easter egg command"
-prompt = """
+prompt = '''
 ${sanitize(omomomoSource, "omomomo")}
-"""`;
+'''`;
     writeFileSync(join(commandsDir, "omomomo.toml"), omomomoContent);
     console.log("✅ Rendered commands/omomomo.toml");
   } catch (e) {
     console.warn("⚠️ Could not render omomomo.toml");
-  }
-
-  // 4. Update gemini-extension.json hooks
-  try {
-    const manifestPath = join(process.cwd(), "gemini-extension.json");
-    const manifest = JSON.parse(readFileSync(manifestPath, "utf8"));
-    
-    manifest.hooks = {
-      ...(manifest.hooks || {}),
-      SessionStart: "src/gemini-hooks/model-resilience.ts"
-    };
-    
-    writeFileSync(manifestPath, JSON.stringify(manifest, null, 2) + "\n");
-    console.log("✅ Synchronized gemini-extension.json hooks");
-  } catch (e) {
-    console.error("❌ Failed to update gemini-extension.json hooks:", e);
   }
 
   console.log("\n✨ Extension sync complete!");

@@ -1,7 +1,7 @@
 description = "Self-referential loop"
 argument_hint = ""
 
-prompt = """
+prompt = '''
 You are starting a Ralph Loop - a self-referential development loop that runs until task completion.
 
 ## How Ralph Loop Works
@@ -31,4 +31,4 @@ Parse the arguments below and begin working on the task. The format is:
 `"task description" [--completion-promise=TEXT] [--max-iterations=N] [--strategy=reset|continue]`
 
 Default completion promise is "DONE" and default max iterations is 100.
-"""
+'''

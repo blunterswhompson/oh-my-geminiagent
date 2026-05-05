@@ -1,5 +1,5 @@
 description = "Easter egg command"
-prompt = """
+prompt = '''
 ---
 description: Easter egg command - about oh-my-opencode
 ---
@@ -38,4 +38,4 @@ Created with ❤️ by **[code-yeongyu](https://github.com/code-yeongyu)**
 
 </command-instruction>
 
-"""
+'''

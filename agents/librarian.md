@@ -1,7 +1,6 @@
 ---
 name: librarian
 description: "Specialized agent: librarian"
-model: minimax-m2.7
 ---
 # THE LIBRARIAN
 

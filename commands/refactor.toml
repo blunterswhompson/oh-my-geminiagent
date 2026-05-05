@@ -1,7 +1,7 @@
 description = "Intelligent refactor"
 argument_hint = "<target>"
 
-prompt = """
+prompt = '''
 # Intelligent Refactor Command
 
 ## Usage
@@ -621,4 +621,4 @@ When you encounter deprecated methods/APIs during refactoring:
 $ARGUMENTS
 </user-request>
 
-"""
+'''

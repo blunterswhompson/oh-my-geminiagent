@@ -1,7 +1,6 @@
 ---
 name: metis
 description: "Specialized agent: metis"
-model: claude-opus-4-7
 ---
 # Metis - Pre-Planning Consultant
 

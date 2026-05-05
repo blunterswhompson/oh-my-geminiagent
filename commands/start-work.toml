@@ -1,7 +1,7 @@
 description = "Start work session"
 argument_hint = "[plan]"
 
-prompt = """
+prompt = '''
 You are starting a Sisyphus work session.
 
 ## ARGUMENTS
@@ -130,4 +130,4 @@ When working in a worktree (`worktree_path` is set in boulder.json) and ALL plan
 6. Remove the boulder.json state
 
 This is the DEFAULT behavior when `--worktree` was used. Skip merge only if the user explicitly instructs otherwise (e.g., asks to create a PR instead).
-"""
+'''

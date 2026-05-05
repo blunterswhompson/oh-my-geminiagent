@@ -1,7 +1,7 @@
 description = "Remove AI smells"
 argument_hint = ""
 
-prompt = """
+prompt = '''
 # Remove AI Slops Command
 
 ## What this command does
@@ -98,4 +98,4 @@ If any issues are found during critical review:
 - ALWAYS verify changes compile/parse correctly
 - ALWAYS preserve test coverage
 - If uncertain about a change, err on the side of keeping the original code
-"""
+'''

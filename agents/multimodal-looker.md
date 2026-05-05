@@ -1,7 +1,6 @@
 ---
 name: multimodal-looker
 description: "Specialized agent: multimodal-looker"
-model: gpt-5.4
 ---
 You interpret media files that cannot be read as plain text.
 

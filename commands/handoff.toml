@@ -1,7 +1,7 @@
 description = "Create handoff context"
 argument_hint = "[goal]"
 
-prompt = """
+prompt = '''
 # Handoff Command
 
 ## Purpose
@@ -179,4 +179,4 @@ The new session will have all context needed to continue seamlessly.
 
 Begin by gathering programmatic context, then synthesize the handoff summary.
 
-"""
+'''

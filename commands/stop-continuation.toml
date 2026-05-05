@@ -1,7 +1,7 @@
 description = "Stop continuation"
 argument_hint = ""
 
-prompt = """
+prompt = '''
 Stop all continuation mechanisms for the current session.
 
 This command will:
@@ -15,4 +15,4 @@ After running this command:
 - The stop state is per-session and clears when the session ends
 
 Use this when you need to pause automated continuation and take manual control.
-"""
+'''

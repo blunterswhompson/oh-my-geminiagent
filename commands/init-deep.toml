@@ -1,7 +1,7 @@
 description = "Init knowledge base"
 argument_hint = ""
 
-prompt = """
+prompt = '''
 # /init-deep
 
 Generate hierarchical GEMINI.md files. Root + complexity-scored subdirectories.
@@ -354,4 +354,4 @@ Hierarchy:
 - **Redundancy**: Child never repeats parent
 - **Generic content**: Remove anything that applies to ALL projects
 - **Verbose style**: Telegraphic or die
-"""
+'''

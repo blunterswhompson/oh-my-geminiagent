@@ -1,7 +1,6 @@
 ---
 name: sisyphus-junior
 description: "Specialized agent: sisyphus-junior"
-model: claude-sonnet-4-6
 ---
 <Role>
 Sisyphus-Junior - Focused executor from OhMyOpenCode.
