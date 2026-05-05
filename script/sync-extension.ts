@@ -1,5 +1,6 @@
 import { writeFileSync, mkdirSync, readFileSync, readdirSync, statSync } from "fs";
 import { join } from "path";
+import { execSync } from "child_process";
 import { AGENT_MODEL_REQUIREMENTS } from "../src/shared/model-requirements";
 import { createSisyphusAgent } from "../src/agents/sisyphus";
 import { createHephaestusAgent } from "../src/agents/hephaestus/agent";
@@ -31,6 +32,14 @@ const sanitize = (text: string | undefined, name: string) => {
 async function sync() {
   console.log("🚀 Synchronizing Gemini Extension components...");
 
+  // 0. Generate R&D Index
+  try {
+    console.log("🔍 Generating R&D Index...");
+    execSync("bun run script/generate-rd-index.ts");
+  } catch (e) {
+    console.warn("⚠️ Could not generate RESEARCH.md");
+  }
+
   // 1. Render Agents
   const agentsDir = join(process.cwd(), "agents");
   mkdirSync(agentsDir, { recursive: true });
@@ -51,7 +60,17 @@ async function sync() {
   for (const [name, factory] of Object.entries(agentFactories)) {
     const requirement = AGENT_MODEL_REQUIREMENTS[name as keyof typeof AGENT_MODEL_REQUIREMENTS];
     const preferredModel = (requirement as any)?.fallbackChain?.[0]?.model || "google/gemini-3.1-pro-preview";
-    const instructions = factory(preferredModel);
+    let instructions = factory(preferredModel);
+
+    // Inject R&D Library Index into Librarian
+    if (name === "librarian") {
+      try {
+        const researchSummary = readFileSync(join(process.cwd(), "RESEARCH.md"), "utf8");
+        instructions += `\n\n---\n\n## R&D LIBRARY (Internal Reference)\n\nThis is a library of specialized agents and commands available in the \`geminirnd/\` directory. Use these for advanced research, implementation, or domain-specific tasks.\n\n${researchSummary}`;
+      } catch (e) {
+        console.warn("⚠️ Could not inject RESEARCH.md into Librarian prompt");
+      }
+    }
     
     const content = `---
 name: ${name}
