@@ -59,9 +59,9 @@ This audit compares the new **Gemini CLI Harness** (native extension) against th
 
 ## 5. Next Steps & Recommendations
 
-1.  **Implement Functional Session Bridge:** Replace the `mockClient` with a real bridge to the Gemini CLI Session API to enable full todo/transcript visibility.
-2.  **Bridge `session.error`:** Map this to the internal recovery tier to enable automated context window management.
-3.  **Refactor Hook Bridge:** Move `bin/harness-hooks.js` logic into a more robust binary to handle complex JSON event schemas from the CLI.
+1.  **Bridge `session.status` and `message.updated`:** Map these events to enable full OpenClaw notification parity and reactive provider fallbacks.
+2.  **Refactor Hook Bridge:** Move `bin/harness-hooks.js` logic into a more robust binary to handle complex JSON event schemas from the CLI.
+3.  **Expand Hook Coverage:** Bridge the remaining 7 lifecycle hooks to reach 100% parity with the OpenCode plugin.
 
 ---
 
