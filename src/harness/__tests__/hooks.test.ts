@@ -95,7 +95,7 @@ test("AfterTool blocks if commentChecker detects slop", async () => {
   spy.mockRestore();
 });
 
-test("AfterAgent triggers todoContinuationEnforcer via session.idle", async () => {
+test("AfterAgent triggers todoContinuationEnforcer via session.status", async () => {
   const mockEventHandler = mock(async () => {});
   const spy = spyOn(eventModule, "createEventHandler").mockReturnValue(mockEventHandler);
 
@@ -113,8 +113,9 @@ test("AfterAgent triggers todoContinuationEnforcer via session.idle", async () =
   expect(mockEventHandler).toHaveBeenCalled();
   
   const call = mockEventHandler.mock.calls[0];
-  expect(call[0].event.type).toBe("session.idle");
+  expect(call[0].event.type).toBe("session.status");
   expect(call[0].event.properties.sessionID).toBe("test-session");
+  expect(call[0].event.properties.status.type).toBe("idle");
 
   spy.mockRestore();
 });

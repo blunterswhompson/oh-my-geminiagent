@@ -138,7 +138,7 @@ export async function handleGeminiHook(input: GeminiHookInput): Promise<GeminiHo
     }
 
     case 'AfterTool': {
-      const { hooks } = await getPluginInstance(directory, transcriptPath);
+      const { hooks, eventHandler } = await getPluginInstance(directory, transcriptPath);
       if (hooks.commentChecker?.["tool.execute.after"]) {
         const outputObj = {
           title: input.data.tool,
@@ -160,19 +160,44 @@ export async function handleGeminiHook(input: GeminiHookInput): Promise<GeminiHo
           };
         }
       }
+
+      // Trigger message.updated for internal telemetry
+      await eventHandler({
+        event: {
+          type: 'message.updated',
+          properties: {
+            sessionID: input.data.sessionID,
+            info: {
+              sessionID: input.data.sessionID,
+              tool: input.data.tool,
+              id: input.data.callID || "harness-call-id",
+              role: "tool",
+              type: "tool",
+            }
+          }
+        }
+      });
+
       return { status: 'allow' };
     }
 
-    case 'AfterAgent':
+    case 'AfterAgent': {
+      const { eventHandler } = await getPluginInstance(directory, transcriptPath);
+      
+      // Trigger session.status for internal turn tracking and fallback awareness
       await eventHandler({
         event: {
-          type: 'session.idle',
+          type: 'session.status',
           properties: {
             sessionID: input.data.sessionID,
+            status: {
+              type: 'idle'
+            }
           }
         }
       });
       return { status: 'allow' };
+    }
 
     case 'AfterModel':
       if (input.data.llm_response?.finishReason === 'length') {
@@ -188,10 +213,30 @@ export async function handleGeminiHook(input: GeminiHookInput): Promise<GeminiHo
       }
       return { status: 'allow' };
 
+    case 'PreCompress': {
+      const { hooks, eventHandler } = await getPluginInstance(directory, transcriptPath);
+      
+      // Capture state before compaction
+      await hooks.compactionContextInjector?.capture(input.data.sessionID);
+      await hooks.compactionTodoPreserver?.capture(input.data.sessionID);
+
+      // Trigger internal compaction event to notify other hooks (e.g. contextWindowMonitor)
+      await eventHandler({
+        event: {
+          type: 'experimental.session.compacting',
+          properties: {
+            sessionID: input.data.sessionID,
+          }
+        }
+      });
+      return { status: 'allow' };
+    }
+
     case 'SessionEnd': {
       const { hooks, managers } = await getPluginInstance(directory, transcriptPath);
       hooks.disposeHooks();
-      await managers.backgroundManager.cancelAllTasks();
+      await managers.skillMcpManager.disconnectSession(input.data.sessionID);
+      await managers.backgroundManager.shutdown();
       return { status: 'allow' };
     }
 

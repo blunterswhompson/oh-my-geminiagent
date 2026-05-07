@@ -5,7 +5,10 @@ import { handleGeminiHook, resetPluginInstance } from '../hooks';
 vi.mock('../../create-managers', () => ({
   createManagers: vi.fn().mockReturnValue({
     backgroundManager: {
-      cancelAllTasks: vi.fn(),
+      shutdown: vi.fn(),
+    },
+    skillMcpManager: {
+      disconnectSession: vi.fn(),
     },
     modelFallbackControllerAccessor: {},
   }),
@@ -24,7 +27,7 @@ describe('Lifecycle hooks', () => {
     vi.clearAllMocks();
   });
 
-  it('should call disposeHooks and cancelAllTasks on SessionEnd', async () => {
+  it('should call disposeHooks, disconnectSession and shutdown on SessionEnd', async () => {
     const { createHooks } = await import('../../create-hooks');
     const { createManagers } = await import('../../create-managers');
     
@@ -53,6 +56,7 @@ describe('Lifecycle hooks', () => {
     const managers = (createManagers as any).mock.results[0].value;
 
     expect(hooks.disposeHooks).toHaveBeenCalled();
-    expect(managers.backgroundManager.cancelAllTasks).toHaveBeenCalled();
+    expect(managers.skillMcpManager.disconnectSession).toHaveBeenCalledWith('test-session');
+    expect(managers.backgroundManager.shutdown).toHaveBeenCalled();
   });
 });
