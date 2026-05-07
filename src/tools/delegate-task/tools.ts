@@ -1,6 +1,7 @@
 import { tool, type ToolDefinition } from "@opencode-ai/plugin"
 import type { DelegatedModelConfig, ToolContextWithMetadata, DelegateTaskToolOptions } from "./types"
 import { log } from "../../shared/logger"
+import { getAgentConfigKey } from "../../shared/agent-display-names"
 import { buildSystemContent } from "./prompt-builder"
 import {
   resolveSkillContent,
@@ -156,6 +157,13 @@ export function createDelegateTask(options: DelegateTaskToolOptions): ToolDefini
 
       if (runInBackground) {
         return executeBackgroundTask(delegateTaskArgs, ctx, options, parentContext, agentToUse, categoryModel, systemContent, fallbackChain)
+      }
+
+      // Detect Gemini CLI harness environment
+      const isHarness = ctx.sessionId?.startsWith("harness-")
+      if (isHarness && !delegateTaskArgs.task_id) {
+        const agentKey = getAgentConfigKey(agentToUse)
+        return `@${agentKey} ${delegateTaskArgs.prompt}`
       }
 
       return executeSyncTask(delegateTaskArgs, ctx, options, parentContext, agentToUse, categoryModel, systemContent, modelInfo, fallbackChain)
