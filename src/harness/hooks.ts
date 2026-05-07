@@ -88,7 +88,7 @@ async function getPluginInstance(directory: string, transcriptPath?: string) {
     ctx: pluginContext,
     pluginConfig,
     firstMessageVariantGate: {
-      shouldOverride: () => false,
+      shouldOverride: () => (client as any).getTurnCount?.() === 1,
       markApplied: () => {},
       markSessionCreated: () => {},
       clear: () => {},
@@ -117,7 +117,19 @@ async function getPluginInstance(directory: string, transcriptPath?: string) {
 export async function handleGeminiHook(input: GeminiHookInput): Promise<GeminiHookResult> {
   const directory = input.data.directory || process.cwd();
   const transcriptPath = input.data.transcript_path;
-  const { pluginInterface } = await getPluginInstance(directory, transcriptPath);
+  const { pluginInterface, pluginContext } = await getPluginInstance(directory, transcriptPath);
+  const client = pluginContext.client as any;
+
+  const flushToasts = (result: GeminiHookResult): GeminiHookResult => {
+    if (client.toastBuffer && client.toastBuffer.length > 0) {
+      const toasts = client.toastBuffer.join('\n');
+      result.message = result.message ? `${result.message}\n\n${toasts}` : toasts;
+      client.toastBuffer = [];
+    }
+    return result;
+  };
+
+  let result: GeminiHookResult = { status: 'allow' };
 
   // Dispatch based on Gemini event type
   switch (input.event) {
@@ -133,78 +145,106 @@ export async function handleGeminiHook(input: GeminiHookInput): Promise<GeminiHo
           }
         }
       });
-      return { status: 'allow' };
+      result = { status: 'allow' };
+      break;
 
     case 'BeforeTool': {
-      const { hooks } = await getPluginInstance(directory, transcriptPath);
-      for (const hookName in hooks) {
-        const hook = hooks[hookName];
-        if (hook?.["tool.execute.before"]) {
-          await hook["tool.execute.before"](
-            {
-              tool: input.data.tool,
-              sessionID: input.data.sessionID,
-              callID: input.data.callID || "harness-call-id",
-            },
-            { args: input.data.arguments || {} },
-          );
-        }
-      }
-      return { status: 'allow' };
+      await pluginInterface["tool.execute.before"](
+        {
+          tool: input.data.tool,
+          sessionID: input.data.sessionID,
+          callID: input.data.callID || "harness-call-id",
+        },
+        { args: input.data.arguments || {} },
+      );
+      result = { status: 'allow' };
+      break;
     }
 
     case 'AfterTool': {
-      const { hooks, pluginInterface } = await getPluginInstance(directory, transcriptPath);
       const outputObj = {
         title: input.data.tool,
         output: input.data.result || "",
         metadata: input.data.metadata || {},
       };
 
-      for (const hookName in hooks) {
-        const hook = hooks[hookName];
-        if (hook?.["tool.execute.after"]) {
-          await hook["tool.execute.after"](
-            {
-              tool: input.data.tool,
-              sessionID: input.data.sessionID,
-              callID: input.data.callID || "harness-call-id",
-            },
-            outputObj,
-          );
-        }
-      }
+      await pluginInterface["tool.execute.after"](
+        {
+          tool: input.data.tool,
+          sessionID: input.data.sessionID,
+          callID: input.data.callID || "harness-call-id",
+        },
+        outputObj,
+      );
 
       if (outputObj.output !== (input.data.result || "")) {
-        return {
+        result = {
           status: "deny",
           message: outputObj.output,
         };
-      }
-
-      // Trigger message.updated for internal telemetry
-      await pluginInterface.event({
-        event: {
-          type: 'message.updated',
-          properties: {
-            sessionID: input.data.sessionID,
-            info: {
+      } else {
+        // Trigger message.updated for internal telemetry
+        await pluginInterface.event({
+          event: {
+            type: 'message.updated',
+            properties: {
               sessionID: input.data.sessionID,
-              tool: input.data.tool,
-              id: input.data.callID || "harness-call-id",
-              role: "tool",
-              type: "tool",
+              info: {
+                sessionID: input.data.sessionID,
+                tool: input.data.tool,
+                id: input.data.callID || "harness-call-id",
+                role: "tool",
+                type: "tool",
+              }
             }
           }
-        }
-      });
+        });
+        result = { status: 'allow' };
+      }
+      break;
+    }
 
-      return { status: 'allow' };
+    case 'BeforeAgent': {
+      const chatInput = {
+        sessionID: input.data.sessionID,
+        agent: input.data.agent || 'sisyphus',
+        model: { providerID: 'gemini', modelID: 'gemini-exp-1206' }
+      };
+      
+      const chatOutput = {
+        message: { role: 'user', content: input.data.prompt || '' },
+        parts: [{ type: 'text', text: input.data.prompt || '' }]
+      };
+
+      if (pluginInterface['chat.message']) {
+        await pluginInterface['chat.message'](chatInput, chatOutput);
+      }
+
+      const transformOutput = {
+        messages: [{
+          info: { role: 'user' },
+          parts: chatOutput.parts
+        }]
+      };
+
+      if (pluginInterface['experimental.chat.messages.transform']) {
+        await pluginInterface['experimental.chat.messages.transform']({}, transformOutput as any);
+      }
+
+      const finalContent = transformOutput.messages[0].parts.map((p: any) => p.text).join('\n');
+
+      if (finalContent !== (input.data.prompt || '')) {
+        result = {
+          status: 'deny',
+          message: finalContent
+        };
+      } else {
+        result = { status: 'allow' };
+      }
+      break;
     }
 
     case 'AfterAgent': {
-      const { pluginInterface, pluginContext } = await getPluginInstance(directory, transcriptPath);
-      
       // Trigger session.idle for internal turn tracking and fallback awareness
       await pluginInterface.event({
         event: {
@@ -216,85 +256,96 @@ export async function handleGeminiHook(input: GeminiHookInput): Promise<GeminiHo
       });
 
       // Check for pending prompts (e.g. injected by Atlas/Boulder)
-      const client = pluginContext.client as any;
       if (client.pendingPrompts && client.pendingPrompts.length > 0) {
         const prompt = client.pendingPrompts.pop();
-        return {
+        result = {
           status: 'deny',
           message: prompt
         };
+      } else {
+        result = { status: 'allow' };
       }
-
-      return { status: 'allow' };
+      break;
     }
 
     case 'AfterModel': {
-      const { pluginInterface } = await getPluginInstance(directory, transcriptPath);
-      if (input.data.llm_response?.finishReason === 'length') {
+      const finishReason = input.data.llm_response?.finishReason;
+      
+      if (finishReason && finishReason !== 'stop' && finishReason !== 'end_turn') {
         await pluginInterface.event({
           event: {
             type: 'session.error',
             properties: {
               sessionID: input.data.sessionID,
-              error: new Error("Token limit reached")
+              error: new Error(finishReason === 'length' ? "Token limit reached" : `LLM finish reason: ${finishReason}`)
             }
           }
         });
       }
-      return { status: 'allow' };
+      result = { status: 'allow' };
+      break;
     }
 
     case 'BeforeModel': {
-      const { pluginInterface } = await getPluginInstance(directory, transcriptPath);
       const llm_request = input.data.llm_request;
       if (!llm_request || !llm_request.messages) {
-        return { status: 'allow' };
+        result = { status: 'allow' };
+        break;
       }
 
-      // Convert Gemini messages to OpenCode format for transformation
-      const lastMessage = llm_request.messages[llm_request.messages.length - 1];
-      if (lastMessage && lastMessage.role === 'user') {
-        const chatInput = {
+      // Map chat.params for reasoning effort support
+      if (pluginInterface['chat.params']) {
+        const paramsInput = {
           sessionID: input.data.sessionID,
-          agent: input.data.agent,
-          model: { providerID: 'gemini', modelID: llm_request.model }
+          agent: { name: input.data.agent },
+          model: { providerID: 'gemini', modelID: llm_request.model },
+          provider: { id: 'gemini' },
+          message: { variant: input.data.variant }
         };
-        const chatOutput = {
-          message: lastMessage,
-          parts: [{ type: 'text', text: lastMessage.content }]
+        const paramsOutput = {
+          temperature: llm_request.temperature,
+          topP: llm_request.topP,
+          topK: llm_request.topK,
+          maxOutputTokens: llm_request.maxOutputTokens,
+          options: llm_request.options || {}
         };
+        
+        await pluginInterface['chat.params'](paramsInput, paramsOutput);
+        
+        // Map back modified params
+        llm_request.temperature = paramsOutput.temperature;
+        llm_request.topP = paramsOutput.topP;
+        llm_request.topK = paramsOutput.topK;
+        llm_request.maxOutputTokens = paramsOutput.maxOutputTokens;
+        llm_request.options = paramsOutput.options;
+      }
 
-        if (pluginInterface['chat.message']) {
-          await pluginInterface['chat.message'](chatInput, chatOutput);
-          lastMessage.content = chatOutput.parts.map(p => p.text).join('\n');
+      // Map chat.headers for telemetry
+      if (pluginInterface['chat.headers']) {
+        const lastMessage = llm_request.messages[llm_request.messages.length - 1];
+        const headersInput = {
+          sessionID: input.data.sessionID,
+          provider: { id: 'gemini' },
+          message: {
+            id: input.data.callID || "harness-call-id",
+            role: lastMessage?.role
+          }
+        };
+        const headersOutput = { headers: {} };
+        await pluginInterface['chat.headers'](headersInput, headersOutput);
+        
+        // Gemini CLI doesn't support custom headers, but we record them in metadata if possible
+        if (Object.keys(headersOutput.headers).length > 0) {
+          llm_request.metadata = { ...llm_request.metadata, ...headersOutput.headers };
         }
       }
-
-      const transformOutput = {
-        messages: llm_request.messages.map((m: any) => ({
-          info: m,
-          parts: [{ type: 'text', text: m.content }]
-        }))
-      };
-
-      if (pluginInterface['experimental.chat.messages.transform']) {
-        await pluginInterface['experimental.chat.messages.transform']({}, transformOutput as any);
-      }
-
-      // Update messages back
-      llm_request.messages = transformOutput.messages.map((m: any) => ({
-        ...m.info,
-        content: m.parts.map((p: any) => p.text).join('\n')
-      }));
-
-      return {
-        status: 'allow',
-        data: { llm_request }
-      };
+      
+      result = { status: 'allow', data: { llm_request } };
+      break;
     }
 
     case 'PreCompress': {
-      const { hooks, pluginInterface } = await getPluginInstance(directory, transcriptPath);
+      const { hooks } = await getPluginInstance(directory, transcriptPath);
       
       // Capture state before compaction
       await hooks.compactionContextInjector?.capture(input.data.sessionID);
@@ -309,7 +360,8 @@ export async function handleGeminiHook(input: GeminiHookInput): Promise<GeminiHo
           }
         }
       });
-      return { status: 'allow' };
+      result = { status: 'allow' };
+      break;
     }
 
     case 'SessionEnd': {
@@ -317,10 +369,14 @@ export async function handleGeminiHook(input: GeminiHookInput): Promise<GeminiHo
       hooks.disposeHooks();
       await managers.skillMcpManager.disconnectSession(input.data.sessionID);
       await managers.backgroundManager.shutdown();
-      return { status: 'allow' };
+      result = { status: 'allow' };
+      break;
     }
 
     default:
-      return { status: 'allow' };
+      result = { status: 'allow' };
+      break;
   }
+
+  return flushToasts(result);
 }

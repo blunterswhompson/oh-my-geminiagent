@@ -118,3 +118,65 @@ test("AfterAgent triggers todoContinuationEnforcer via session.status", async ()
 
   spy.mockRestore();
 });
+
+test("BeforeAgent triggers chat.message and messages.transform", async () => {
+  const mockChatMsg = mock(async () => {});
+  const mockHooks = {
+    keywordDetector: { "chat.message": mockChatMsg },
+    autoSlashCommand: { "chat.message": mock(async () => {}) },
+    claudeCodeHooks: { "messages.transform": mock(async () => {}) },
+    thinkingBlockValidator: { "messages.transform": mock(async () => {}) },
+    toolPairValidator: { "messages.transform": mock(async () => {}) },
+    contextInjectorMessagesTransform: { "messages.transform": mock(async () => {}) }
+  };
+  
+  const spy = spyOn(hooksModule, "createHooks").mockReturnValue(mockHooks as any);
+
+  const input = {
+    event: "BeforeAgent" as const,
+    data: {
+      sessionID: "test-session",
+      agent: "sisyphus",
+      prompt: "test prompt",
+      directory: process.cwd()
+    }
+  };
+
+  const result = await handleGeminiHook(input);
+  expect(mockChatMsg).toHaveBeenCalled();
+  expect(result.status).toBe("allow");
+
+  spy.mockRestore();
+});
+
+test("BeforeAgent intercepts and re-prompts if content changed", async () => {
+  const mockChatMsg = mock(async (input: any, output: any) => {
+    output.parts = [{ type: 'text', text: 'TRANSFORMED PROMPT' }];
+  });
+  const mockHooks = {
+    keywordDetector: { "chat.message": mockChatMsg },
+    autoSlashCommand: { "chat.message": mock(async () => {}) },
+    claudeCodeHooks: { "messages.transform": mock(async () => {}) },
+    thinkingBlockValidator: { "messages.transform": mock(async () => {}) },
+    toolPairValidator: { "messages.transform": mock(async () => {}) },
+    contextInjectorMessagesTransform: { "messages.transform": mock(async () => {}) }
+  };
+  
+  const spy = spyOn(hooksModule, "createHooks").mockReturnValue(mockHooks as any);
+
+  const input = {
+    event: "BeforeAgent" as const,
+    data: {
+      sessionID: "test-session",
+      agent: "sisyphus",
+      prompt: "original prompt",
+      directory: process.cwd()
+    }
+  };
+
+  const result = await handleGeminiHook(input);
+  expect(result.status).toBe("deny");
+  expect(result.message).toBe("TRANSFORMED PROMPT");
+
+  spy.mockRestore();
+});
