@@ -8,8 +8,9 @@ export class TranscriptClient {
   public toastBuffer: string[] = [];
 
   public tui = {
-    showToast: (message: string) => {
-      this.toastBuffer.push(`[OMO] ${message}`);
+    showToast: (options: { message?: string; body?: string }) => {
+      const msg = options.message || options.body;
+      if (msg) this.toastBuffer.push(`[OMO] ${msg}`);
     }
   };
 
@@ -23,7 +24,7 @@ export class TranscriptClient {
       const content = fs.readFileSync(this.transcriptPath, 'utf-8');
       const transcript = JSON.parse(content);
       const messages = transcript.messages || [];
-      return messages.filter((m: any) => m.role === 'user').length || 1;
+      return messages.filter((m: any) => m.role === 'user').length + 1;
     } catch (e) {
       console.error('[TranscriptClient] Error calculating turn count:', e);
       return 1;

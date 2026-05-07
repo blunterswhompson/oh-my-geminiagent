@@ -104,7 +104,7 @@ describe('TranscriptClient', () => {
   describe('UI Bridge (toastBuffer)', () => {
     test('showToast adds messages with prefix', () => {
       const c = new TranscriptClient('dummy.json');
-      (c as any).tui.showToast('Test Toast');
+      (c as any).tui.showToast({ message: 'Test Toast' });
       expect((c as any).toastBuffer).toEqual(['[OMO] Test Toast']);
     });
   });
@@ -115,11 +115,15 @@ describe('TranscriptClient', () => {
       expect((c as any).getTurnCount()).toBe(1);
     });
 
-    test('counts user messages correctly', () => {
+    test('returns 1 if transcript has no user messages', () => {
+      writeFileSync(TRANSCRIPT_PATH, JSON.stringify({ messages: [] }));
+      const c = new TranscriptClient(TRANSCRIPT_PATH);
+      expect((c as any).getTurnCount()).toBe(1);
+    });
+
+    test('returns 2 if transcript has one user message', () => {
       const mockMessages = [
-        { role: 'user', content: 'h1' },
-        { role: 'assistant', content: 'r1' },
-        { role: 'user', content: 'h2' }
+        { role: 'user', content: 'hello' }
       ];
       writeFileSync(TRANSCRIPT_PATH, JSON.stringify({ messages: mockMessages }));
       const c = new TranscriptClient(TRANSCRIPT_PATH);
