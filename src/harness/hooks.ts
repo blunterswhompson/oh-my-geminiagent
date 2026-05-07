@@ -28,9 +28,19 @@ async function getPluginInstance(directory: string, transcriptPath?: string) {
   const client = transcriptPath
     ? new TranscriptClient(transcriptPath)
     : ({
+        pendingPrompts: [],
         session: {
           abort: async () => ({}),
-          prompt: async () => ({}),
+          prompt: async (options: any) => {
+            const text = options?.body?.parts?.[0]?.text;
+            if (text) (client as any).pendingPrompts.push(text);
+            return {};
+          },
+          promptAsync: async (options: any) => {
+            const text = options?.body?.parts?.[0]?.text;
+            if (text) (client as any).pendingPrompts.push(text);
+            return {};
+          },
           summarize: async () => ({}),
           todo: async () => ({ data: [] }),
           messages: async () => ({ data: [] }),
@@ -193,20 +203,28 @@ export async function handleGeminiHook(input: GeminiHookInput): Promise<GeminiHo
     }
 
     case 'AfterAgent': {
-      const { pluginInterface } = await getPluginInstance(directory, transcriptPath);
+      const { pluginInterface, pluginContext } = await getPluginInstance(directory, transcriptPath);
       
-      // Trigger session.status for internal turn tracking and fallback awareness
+      // Trigger session.idle for internal turn tracking and fallback awareness
       await pluginInterface.event({
         event: {
-          type: 'session.status',
+          type: 'session.idle',
           properties: {
             sessionID: input.data.sessionID,
-            status: {
-              type: 'idle'
-            }
           }
         }
       });
+
+      // Check for pending prompts (e.g. injected by Atlas/Boulder)
+      const client = pluginContext.client as any;
+      if (client.pendingPrompts && client.pendingPrompts.length > 0) {
+        const prompt = client.pendingPrompts.pop();
+        return {
+          status: 'deny',
+          message: prompt
+        };
+      }
+
       return { status: 'allow' };
     }
 

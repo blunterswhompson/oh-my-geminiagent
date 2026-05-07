@@ -113,9 +113,8 @@ test("AfterAgent triggers todoContinuationEnforcer via session.status", async ()
   expect(mockEventHandler).toHaveBeenCalled();
   
   const call = mockEventHandler.mock.calls[0];
-  expect(call[0].event.type).toBe("session.status");
+  expect(call[0].event.type).toBe("session.idle");
   expect(call[0].event.properties.sessionID).toBe("test-session");
-  expect(call[0].event.properties.status.type).toBe("idle");
 
   spy.mockRestore();
 });

@@ -4,6 +4,8 @@ import fs from 'node:fs';
  * Client that reads Gemini CLI session transcripts to provide state to internal hooks.
  */
 export class TranscriptClient {
+  public pendingPrompts: string[] = [];
+
   constructor(private transcriptPath: string) {}
 
   public session = {
@@ -15,9 +17,22 @@ export class TranscriptClient {
     },
 
     /**
-     * No-op prompt implementation.
+     * Stores the prompt text in pendingPrompts.
      */
-    prompt: async () => {
+    prompt: async (options: { message: string }) => {
+      if (options?.message) {
+        this.pendingPrompts.push(options.message);
+      }
+      return {};
+    },
+
+    /**
+     * Stores the prompt text in pendingPrompts.
+     */
+    promptAsync: async (options: { message: string }) => {
+      if (options?.message) {
+        this.pendingPrompts.push(options.message);
+      }
       return {};
     },
 

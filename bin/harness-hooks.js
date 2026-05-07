@@ -30,8 +30,15 @@ async function main() {
       }
     });
     
+    // Map internal result structure to Gemini CLI expected structure
+    const output = {
+      decision: result.status,
+      reason: result.message,
+      data: result.data
+    };
+
     // Output the result as JSON for Gemini CLI to consume
-    process.stdout.write(JSON.stringify(result));
+    process.stdout.write(JSON.stringify(output));
     process.exit(0);
   } catch (error) {
     console.error(`Error in ${event} hook:`, error);

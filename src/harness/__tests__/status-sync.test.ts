@@ -43,10 +43,12 @@ test("AfterTool triggers message.updated event", async () => {
   hooksSpy.mockRestore();
 });
 
-test("AfterAgent triggers session.status event", async () => {
+test("AfterAgent triggers session.idle event", async () => {
   const mockEventHandler = mock(async () => {});
   const eventSpy = spyOn(eventModule, "createEventHandler").mockReturnValue(mockEventHandler);
-  const mockHooks = {};
+  const mockHooks = {
+    disposeHooks: mock(() => {})
+  };
   const hooksSpy = spyOn(hooksModule, "createHooks").mockReturnValue(mockHooks as any);
 
   const input = {
@@ -58,13 +60,10 @@ test("AfterAgent triggers session.status event", async () => {
   };
 
   await handleGeminiHook(input);
-  
-  // Verify session.status was called
-  const sessionStatusCall = mockEventHandler.mock.calls.find(call => call[0].event.type === "session.status");
-  expect(sessionStatusCall).toBeDefined();
-  expect(sessionStatusCall![0].event.properties.sessionID).toBe("test-session");
-  expect(sessionStatusCall![0].event.properties.status).toBeDefined();
-  expect(sessionStatusCall![0].event.properties.status.type).toBe("idle");
+  // Verify session.idle was called
+  const sessionIdleCall = mockEventHandler.mock.calls.find(call => call[0].event.type === "session.idle");
+  expect(sessionIdleCall).toBeDefined();
+  expect(sessionIdleCall![0].event.properties.sessionID).toBe("test-session");
 
   eventSpy.mockRestore();
   hooksSpy.mockRestore();
