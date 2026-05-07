@@ -6,7 +6,7 @@ beforeEach(() => {
   resetPluginInstance();
 });
 
-test("BeforeModel triggers chat.message and transform parity", async () => {
+test("BeforeAgent triggers chat.message and transform parity", async () => {
   const mockChatMessage = mock(async (input: any, output: any) => {
     output.parts[0].text = "chat: " + output.parts[0].text;
   });
@@ -23,33 +23,26 @@ test("BeforeModel triggers chat.message and transform parity", async () => {
   const spy = spyOn(pluginInterfaceModule, "createPluginInterface").mockReturnValue(mockPluginInterface as any);
 
   const input = {
-    event: "BeforeModel" as const,
+    event: "BeforeAgent" as const,
     data: {
       sessionID: "test-session",
       agent: "sisyphus",
-      llm_request: {
-        model: "gemini-1.5-pro",
-        messages: [
-          { role: "user", content: "hello" }
-        ]
-      }
+      prompt: "hello"
     }
   };
 
   const result = await handleGeminiHook(input);
   
-  expect(result.status).toBe("allow");
+  expect(result.status).toBe("deny");
   expect(mockChatMessage).toHaveBeenCalled();
   expect(mockMessagesTransform).toHaveBeenCalled();
   
-  const updatedRequest = result.data.llm_request;
-  // chat.message prepends "chat: ", experimental.chat.messages.transform prepends "transform: "
-  expect(updatedRequest.messages[0].content).toBe("transform: chat: hello");
+  expect(result.message).toBe("transform: chat: hello");
 
   spy.mockRestore();
 });
 
-test("BeforeModel works when optional handlers are missing", async () => {
+test("BeforeAgent works when optional handlers are missing", async () => {
   const mockPluginInterface = {
     event: mock(async () => {}),
     // Missing chat.message and experimental.chat.messages.transform
@@ -58,23 +51,17 @@ test("BeforeModel works when optional handlers are missing", async () => {
   const spy = spyOn(pluginInterfaceModule, "createPluginInterface").mockReturnValue(mockPluginInterface as any);
 
   const input = {
-    event: "BeforeModel" as const,
+    event: "BeforeAgent" as const,
     data: {
       sessionID: "test-session",
       agent: "sisyphus",
-      llm_request: {
-        model: "gemini-1.5-pro",
-        messages: [
-          { role: "user", content: "hello" }
-        ]
-      }
+      prompt: "hello"
     }
   };
 
   const result = await handleGeminiHook(input);
   
   expect(result.status).toBe("allow");
-  expect(result.data.llm_request.messages[0].content).toBe("hello");
 
   spy.mockRestore();
 });

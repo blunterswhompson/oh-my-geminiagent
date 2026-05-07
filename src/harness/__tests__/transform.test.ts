@@ -6,7 +6,7 @@ beforeEach(() => {
   resetPluginInstance();
 });
 
-test("BeforeModel triggers keyword detector and modifies messages", async () => {
+test("BeforeAgent triggers keyword detector and modifies prompt", async () => {
   const mockKeywordDetector = mock(async (input: any, output: any) => {
     // Simulate keyword detector adding mode instructions
     const textPart = output.parts.find((p: any) => p.type === "text");
@@ -27,24 +27,16 @@ test("BeforeModel triggers keyword detector and modifies messages", async () => 
   spyOn(hooksModule, "createHooks").mockReturnValue(mockHooks as any);
 
   const input = {
-    event: "BeforeModel" as const,
+    event: "BeforeAgent" as const,
     data: {
       sessionID: "test-session",
-      llm_request: {
-        model: "gemini-pro",
-        messages: [
-          {
-            role: "user",
-            content: "I want to do some ultrawork"
-          }
-        ]
-      }
+      prompt: "I want to do some ultrawork"
     }
   };
 
   const result = await handleGeminiHook(input);
   
-  expect(result.status).toBe("allow");
-  expect(result.data.llm_request.messages[0].content).toContain("MODE: ULTRAWORK");
+  expect(result.status).toBe("deny");
+  expect(result.message).toContain("MODE: ULTRAWORK");
   expect(mockKeywordDetector).toHaveBeenCalled();
 });
