@@ -3,7 +3,7 @@
  * Gemini CLI Hook Wrapper
  * 
  * This script bridges Gemini CLI lifecycle events to the oh-my-geminiagent harness.
- * Supported events include: SessionStart, BeforeTool, AfterTool, AfterAgent, AfterModel.
+ * Supported events include: SessionStart, BeforeTool, AfterTool, AfterAgent, AfterModel, BeforeModel, PreCompress, SessionEnd.
  */
 import { handleGeminiHook } from '../src/harness/hooks';
 

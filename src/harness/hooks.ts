@@ -124,41 +124,49 @@ export async function handleGeminiHook(input: GeminiHookInput): Promise<GeminiHo
 
     case 'BeforeTool': {
       const { hooks } = await getPluginInstance(directory, transcriptPath);
-      if (hooks.commentChecker?.["tool.execute.before"]) {
-        await hooks.commentChecker["tool.execute.before"](
-          {
-            tool: input.data.tool,
-            sessionID: input.data.sessionID,
-            callID: input.data.callID || "harness-call-id",
-          },
-          { args: input.data.arguments || {} },
-        );
+      for (const hookName in hooks) {
+        const hook = hooks[hookName];
+        if (hook?.["tool.execute.before"]) {
+          await hook["tool.execute.before"](
+            {
+              tool: input.data.tool,
+              sessionID: input.data.sessionID,
+              callID: input.data.callID || "harness-call-id",
+            },
+            { args: input.data.arguments || {} },
+          );
+        }
       }
       return { status: 'allow' };
     }
 
     case 'AfterTool': {
       const { hooks, eventHandler } = await getPluginInstance(directory, transcriptPath);
-      if (hooks.commentChecker?.["tool.execute.after"]) {
-        const outputObj = {
-          title: input.data.tool,
-          output: input.data.result || "",
-          metadata: input.data.metadata || {},
-        };
-        await hooks.commentChecker["tool.execute.after"](
-          {
-            tool: input.data.tool,
-            sessionID: input.data.sessionID,
-            callID: input.data.callID || "harness-call-id",
-          },
-          outputObj,
-        );
-        if (outputObj.output !== (input.data.result || "")) {
-          return {
-            status: "deny",
-            message: outputObj.output,
-          };
+      const outputObj = {
+        title: input.data.tool,
+        output: input.data.result || "",
+        metadata: input.data.metadata || {},
+      };
+
+      for (const hookName in hooks) {
+        const hook = hooks[hookName];
+        if (hook?.["tool.execute.after"]) {
+          await hook["tool.execute.after"](
+            {
+              tool: input.data.tool,
+              sessionID: input.data.sessionID,
+              callID: input.data.callID || "harness-call-id",
+            },
+            outputObj,
+          );
         }
+      }
+
+      if (outputObj.output !== (input.data.result || "")) {
+        return {
+          status: "deny",
+          message: outputObj.output,
+        };
       }
 
       // Trigger message.updated for internal telemetry
@@ -212,6 +220,61 @@ export async function handleGeminiHook(input: GeminiHookInput): Promise<GeminiHo
         });
       }
       return { status: 'allow' };
+
+    case 'BeforeModel': {
+      const { hooks } = await getPluginInstance(directory, transcriptPath);
+      const llm_request = input.data.llm_request;
+      if (!llm_request || !llm_request.messages) {
+        return { status: 'allow' };
+      }
+
+      // Convert Gemini messages to OpenCode format for transformation
+      const lastMessage = llm_request.messages[llm_request.messages.length - 1];
+      if (lastMessage && lastMessage.role === 'user') {
+        const chatInput = {
+          sessionID: input.data.sessionID,
+          agent: input.data.agent,
+          model: { providerID: 'gemini', modelID: llm_request.model }
+        };
+        const chatOutput = {
+          message: lastMessage,
+          parts: [{ type: 'text', text: lastMessage.content }]
+        };
+
+        if (hooks.keywordDetector?.['chat.message']) {
+          await hooks.keywordDetector['chat.message'](chatInput, chatOutput);
+          lastMessage.content = chatOutput.parts.map(p => p.text).join('\n');
+        }
+      }
+
+      const transformOutput = {
+        messages: llm_request.messages.map((m: any) => ({
+          info: m,
+          parts: [{ type: 'text', text: m.content }]
+        }))
+      };
+
+      if (hooks.contextInjectorMessagesTransform?.['experimental.chat.messages.transform']) {
+        await hooks.contextInjectorMessagesTransform['experimental.chat.messages.transform']({}, transformOutput as any);
+      }
+      if (hooks.thinkingBlockValidator?.['experimental.chat.messages.transform']) {
+        await hooks.thinkingBlockValidator['experimental.chat.messages.transform']({}, transformOutput as any);
+      }
+      if (hooks.toolPairValidator?.['experimental.chat.messages.transform']) {
+        await hooks.toolPairValidator['experimental.chat.messages.transform']({}, transformOutput as any);
+      }
+
+      // Update messages back
+      llm_request.messages = transformOutput.messages.map((m: any) => ({
+        ...m.info,
+        content: m.parts.map((p: any) => p.text).join('\n')
+      }));
+
+      return {
+        status: 'allow',
+        data: { llm_request }
+      };
+    }
 
     case 'PreCompress': {
       const { hooks, eventHandler } = await getPluginInstance(directory, transcriptPath);

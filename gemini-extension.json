@@ -1027,6 +1027,16 @@
         ]
       }
     ],
+    "BeforeModel": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bun ${extensionPath}/bin/harness-hooks.js BeforeModel"
+          }
+        ]
+      }
+    ],
     "PreCompress": [
       {
         "hooks": [

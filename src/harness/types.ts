@@ -4,8 +4,10 @@ export type GeminiHookType =
   | 'AfterTool'
   | 'AfterAgent'
   | 'AfterModel'
+  | 'BeforeModel'
   | 'Notification'
-  | 'PreCompress';
+  | 'PreCompress'
+  | 'SessionEnd';
 
 export interface GeminiHookInput {
   event: GeminiHookType;
