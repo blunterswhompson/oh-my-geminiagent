@@ -3,11 +3,11 @@ import { loadPluginConfig } from '../plugin-config';
 import { createManagers } from '../create-managers';
 import { createTools } from '../create-tools';
 import { createHooks } from '../create-hooks';
-import { createEventHandler } from '../plugin/event';
 import { createModelCacheState } from '../plugin-state';
 import { createRuntimeTmuxConfig } from '../create-runtime-tmux-config';
 import { PluginContext } from '../plugin/types';
 import { TranscriptClient } from './transcript-client';
+import { createPluginInterface } from '../plugin-interface';
 
 let cachedPluginInstance: any = null;
 
@@ -74,21 +74,24 @@ async function getPluginInstance(directory: string, transcriptPath?: string) {
     availableSkills: toolsResult.availableSkills,
   });
 
-  const eventHandler = createEventHandler({
+  const pluginInterface = createPluginInterface({
     ctx: pluginContext,
     pluginConfig,
     firstMessageVariantGate: {
+      shouldOverride: () => false,
+      markApplied: () => {},
       markSessionCreated: () => {},
       clear: () => {},
     },
     managers,
     hooks,
+    tools: toolsResult.tools,
   });
 
   cachedPluginInstance = {
     directory,
     transcriptPath,
-    eventHandler,
+    pluginInterface,
     hooks,
     managers,
     pluginConfig,
@@ -104,12 +107,12 @@ async function getPluginInstance(directory: string, transcriptPath?: string) {
 export async function handleGeminiHook(input: GeminiHookInput): Promise<GeminiHookResult> {
   const directory = input.data.directory || process.cwd();
   const transcriptPath = input.data.transcript_path;
-  const { eventHandler } = await getPluginInstance(directory, transcriptPath);
+  const { pluginInterface } = await getPluginInstance(directory, transcriptPath);
 
   // Dispatch based on Gemini event type
   switch (input.event) {
     case 'SessionStart':
-      await eventHandler({
+      await pluginInterface.event({
         event: {
           type: 'session.created',
           properties: {
@@ -141,7 +144,7 @@ export async function handleGeminiHook(input: GeminiHookInput): Promise<GeminiHo
     }
 
     case 'AfterTool': {
-      const { hooks, eventHandler } = await getPluginInstance(directory, transcriptPath);
+      const { hooks, pluginInterface } = await getPluginInstance(directory, transcriptPath);
       const outputObj = {
         title: input.data.tool,
         output: input.data.result || "",
@@ -170,7 +173,7 @@ export async function handleGeminiHook(input: GeminiHookInput): Promise<GeminiHo
       }
 
       // Trigger message.updated for internal telemetry
-      await eventHandler({
+      await pluginInterface.event({
         event: {
           type: 'message.updated',
           properties: {
@@ -190,10 +193,10 @@ export async function handleGeminiHook(input: GeminiHookInput): Promise<GeminiHo
     }
 
     case 'AfterAgent': {
-      const { eventHandler } = await getPluginInstance(directory, transcriptPath);
+      const { pluginInterface } = await getPluginInstance(directory, transcriptPath);
       
       // Trigger session.status for internal turn tracking and fallback awareness
-      await eventHandler({
+      await pluginInterface.event({
         event: {
           type: 'session.status',
           properties: {
@@ -207,9 +210,10 @@ export async function handleGeminiHook(input: GeminiHookInput): Promise<GeminiHo
       return { status: 'allow' };
     }
 
-    case 'AfterModel':
+    case 'AfterModel': {
+      const { pluginInterface } = await getPluginInstance(directory, transcriptPath);
       if (input.data.llm_response?.finishReason === 'length') {
-        await eventHandler({
+        await pluginInterface.event({
           event: {
             type: 'session.error',
             properties: {
@@ -220,9 +224,10 @@ export async function handleGeminiHook(input: GeminiHookInput): Promise<GeminiHo
         });
       }
       return { status: 'allow' };
+    }
 
     case 'BeforeModel': {
-      const { hooks } = await getPluginInstance(directory, transcriptPath);
+      const { pluginInterface } = await getPluginInstance(directory, transcriptPath);
       const llm_request = input.data.llm_request;
       if (!llm_request || !llm_request.messages) {
         return { status: 'allow' };
@@ -241,8 +246,8 @@ export async function handleGeminiHook(input: GeminiHookInput): Promise<GeminiHo
           parts: [{ type: 'text', text: lastMessage.content }]
         };
 
-        if (hooks.keywordDetector?.['chat.message']) {
-          await hooks.keywordDetector['chat.message'](chatInput, chatOutput);
+        if (pluginInterface['chat.message']) {
+          await pluginInterface['chat.message'](chatInput, chatOutput);
           lastMessage.content = chatOutput.parts.map(p => p.text).join('\n');
         }
       }
@@ -254,14 +259,8 @@ export async function handleGeminiHook(input: GeminiHookInput): Promise<GeminiHo
         }))
       };
 
-      if (hooks.contextInjectorMessagesTransform?.['experimental.chat.messages.transform']) {
-        await hooks.contextInjectorMessagesTransform['experimental.chat.messages.transform']({}, transformOutput as any);
-      }
-      if (hooks.thinkingBlockValidator?.['experimental.chat.messages.transform']) {
-        await hooks.thinkingBlockValidator['experimental.chat.messages.transform']({}, transformOutput as any);
-      }
-      if (hooks.toolPairValidator?.['experimental.chat.messages.transform']) {
-        await hooks.toolPairValidator['experimental.chat.messages.transform']({}, transformOutput as any);
+      if (pluginInterface['experimental.chat.messages.transform']) {
+        await pluginInterface['experimental.chat.messages.transform']({}, transformOutput as any);
       }
 
       // Update messages back
@@ -277,14 +276,14 @@ export async function handleGeminiHook(input: GeminiHookInput): Promise<GeminiHo
     }
 
     case 'PreCompress': {
-      const { hooks, eventHandler } = await getPluginInstance(directory, transcriptPath);
+      const { hooks, pluginInterface } = await getPluginInstance(directory, transcriptPath);
       
       // Capture state before compaction
       await hooks.compactionContextInjector?.capture(input.data.sessionID);
       await hooks.compactionTodoPreserver?.capture(input.data.sessionID);
 
       // Trigger internal compaction event to notify other hooks (e.g. contextWindowMonitor)
-      await eventHandler({
+      await pluginInterface.event({
         event: {
           type: 'experimental.session.compacting',
           properties: {
