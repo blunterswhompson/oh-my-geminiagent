@@ -373,6 +373,26 @@ export async function handleGeminiHook(input: GeminiHookInput): Promise<GeminiHo
       break;
     }
 
+    case 'Notification': {
+      const msg = input.data.message || input.data.title || input.data.description || '';
+      const isRetry = msg.toLowerCase().includes('retry') || msg.toLowerCase().includes('rate limit') || msg.toLowerCase().includes('quota');
+      
+      await pluginInterface.event({
+        event: {
+          type: 'session.status',
+          properties: {
+            sessionID: input.data.sessionID,
+            status: {
+              type: isRetry ? 'retry' : 'idle',
+              message: msg,
+            }
+          }
+        }
+      });
+      result = { status: 'allow' };
+      break;
+    }
+
     default:
       result = { status: 'allow' };
       break;

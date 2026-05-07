@@ -180,3 +180,57 @@ test("BeforeAgent intercepts and re-prompts if content changed", async () => {
 
   spy.mockRestore();
 });
+
+test("Notification maps to session.status with retry type if message contains retry", async () => {
+  const mockEventHandler = mock(async () => {});
+  const spy = spyOn(eventModule, "createEventHandler").mockReturnValue(mockEventHandler);
+
+  const input = {
+    event: "Notification" as const,
+    data: {
+      sessionID: "test-session",
+      message: "Retrying in 5 seconds due to rate limit",
+      directory: process.cwd()
+    }
+  };
+
+  const result = await handleGeminiHook(input);
+  
+  expect(result.status).toBe("allow");
+  expect(mockEventHandler).toHaveBeenCalled();
+  
+  const call = mockEventHandler.mock.calls[0];
+  expect(call[0].event.type).toBe("session.status");
+  expect(call[0].event.properties.sessionID).toBe("test-session");
+  expect(call[0].event.properties.status.type).toBe("retry");
+  expect(call[0].event.properties.status.message).toBe("Retrying in 5 seconds due to rate limit");
+
+  spy.mockRestore();
+});
+
+test("Notification maps to session.status with idle type if message does not contain retry", async () => {
+  const mockEventHandler = mock(async () => {});
+  const spy = spyOn(eventModule, "createEventHandler").mockReturnValue(mockEventHandler);
+
+  const input = {
+    event: "Notification" as const,
+    data: {
+      sessionID: "test-session",
+      message: "Processing data...",
+      directory: process.cwd()
+    }
+  };
+
+  const result = await handleGeminiHook(input);
+  
+  expect(result.status).toBe("allow");
+  expect(mockEventHandler).toHaveBeenCalled();
+  
+  const call = mockEventHandler.mock.calls[0];
+  expect(call[0].event.type).toBe("session.status");
+  expect(call[0].event.properties.sessionID).toBe("test-session");
+  expect(call[0].event.properties.status.type).toBe("idle");
+  expect(call[0].event.properties.status.message).toBe("Processing data...");
+
+  spy.mockRestore();
+});
