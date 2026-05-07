@@ -1,6 +1,11 @@
-import { test, expect, mock, spyOn } from "bun:test";
-import { handleGeminiHook } from "../hooks";
+import { test, expect, mock, spyOn, beforeEach, afterEach } from "bun:test";
+import { handleGeminiHook, resetPluginInstance } from "../hooks";
 import * as eventModule from "../../plugin/event";
+import * as hooksModule from "../../create-hooks";
+
+beforeEach(() => {
+  resetPluginInstance();
+});
 
 test("SessionStart maps to session.created", async () => {
   const mockEventHandler = mock(async () => {});
@@ -21,6 +26,94 @@ test("SessionStart maps to session.created", async () => {
   
   const call = mockEventHandler.mock.calls[0];
   expect(call[0].event.type).toBe("session.created");
+  expect(call[0].event.properties.sessionID).toBe("test-session");
+
+  spy.mockRestore();
+});
+
+test("BeforeTool triggers commentChecker tool.execute.before", async () => {
+  const mockBefore = mock(async () => {});
+  const mockHooks = {
+    commentChecker: {
+      "tool.execute.before": mockBefore,
+      "tool.execute.after": mock(async () => {})
+    }
+  };
+  
+  const spy = spyOn(hooksModule, "createHooks").mockReturnValue(mockHooks as any);
+
+  const input = {
+    event: "BeforeTool" as const,
+    data: {
+      sessionID: "test-session",
+      tool: "write",
+      arguments: { filePath: "test.ts", content: "console.log('hi')" },
+      callID: "test-call-id"
+    }
+  };
+
+  await handleGeminiHook(input);
+  
+  expect(mockBefore).toHaveBeenCalled();
+  const call = mockBefore.mock.calls[0];
+  expect(call[0].tool).toBe("write");
+  expect(call[0].callID).toBe("test-call-id");
+  expect(call[1].args.filePath).toBe("test.ts");
+
+  spy.mockRestore();
+});
+
+test("AfterTool blocks if commentChecker detects slop", async () => {
+  const mockAfter = mock(async (input: any, output: any) => {
+    output.output += "\n\nAI slop detected!";
+  });
+  const mockHooks = {
+    commentChecker: {
+      "tool.execute.before": mock(async () => {}),
+      "tool.execute.after": mockAfter
+    }
+  };
+  
+  const spy = spyOn(hooksModule, "createHooks").mockReturnValue(mockHooks as any);
+
+  const input = {
+    event: "AfterTool" as const,
+    data: {
+      sessionID: "test-session",
+      tool: "write",
+      result: "Written successfully",
+      callID: "test-call-id"
+    }
+  };
+
+  const result = await handleGeminiHook(input);
+  
+  expect(result.status).toBe("deny");
+  expect(result.message).toContain("AI slop detected!");
+  expect(mockAfter).toHaveBeenCalled();
+
+  spy.mockRestore();
+});
+
+test("AfterAgent triggers todoContinuationEnforcer via session.idle", async () => {
+  const mockEventHandler = mock(async () => {});
+  const spy = spyOn(eventModule, "createEventHandler").mockReturnValue(mockEventHandler);
+
+  const input = {
+    event: "AfterAgent" as const,
+    data: {
+      sessionID: "test-session",
+      directory: process.cwd()
+    }
+  };
+
+  const result = await handleGeminiHook(input);
+  
+  expect(result.status).toBe("allow");
+  expect(mockEventHandler).toHaveBeenCalled();
+  
+  const call = mockEventHandler.mock.calls[0];
+  expect(call[0].event.type).toBe("session.idle");
   expect(call[0].event.properties.sessionID).toBe("test-session");
 
   spy.mockRestore();

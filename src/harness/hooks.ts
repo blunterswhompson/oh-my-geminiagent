@@ -10,6 +10,10 @@ import { PluginContext } from '../plugin/types';
 
 let cachedPluginInstance: any = null;
 
+export function resetPluginInstance() {
+  cachedPluginInstance = null;
+}
+
 async function getPluginInstance(directory: string) {
   if (cachedPluginInstance && cachedPluginInstance.directory === directory) {
     return cachedPluginInstance;
@@ -21,6 +25,8 @@ async function getPluginInstance(directory: string) {
       abort: async () => ({}),
       prompt: async () => ({}),
       summarize: async () => ({}),
+      todo: async () => ({ data: [] }),
+      messages: async () => ({ data: [] }),
     }
   } as any;
 
@@ -102,6 +108,58 @@ export async function handleGeminiHook(input: GeminiHookInput): Promise<GeminiHo
             info: {
               id: input.data.sessionID,
             }
+          }
+        }
+      });
+      return { status: 'allow' };
+
+    case 'BeforeTool': {
+      const { hooks } = await getPluginInstance(directory);
+      if (hooks.commentChecker?.["tool.execute.before"]) {
+        await hooks.commentChecker["tool.execute.before"](
+          {
+            tool: input.data.tool,
+            sessionID: input.data.sessionID,
+            callID: input.data.callID || "harness-call-id",
+          },
+          { args: input.data.arguments || {} },
+        );
+      }
+      return { status: 'allow' };
+    }
+
+    case 'AfterTool': {
+      const { hooks } = await getPluginInstance(directory);
+      if (hooks.commentChecker?.["tool.execute.after"]) {
+        const outputObj = {
+          title: input.data.tool,
+          output: input.data.result || "",
+          metadata: input.data.metadata || {},
+        };
+        await hooks.commentChecker["tool.execute.after"](
+          {
+            tool: input.data.tool,
+            sessionID: input.data.sessionID,
+            callID: input.data.callID || "harness-call-id",
+          },
+          outputObj,
+        );
+        if (outputObj.output !== (input.data.result || "")) {
+          return {
+            status: "deny",
+            message: outputObj.output,
+          };
+        }
+      }
+      return { status: 'allow' };
+    }
+
+    case 'AfterAgent':
+      await eventHandler({
+        event: {
+          type: 'session.idle',
+          properties: {
+            sessionID: input.data.sessionID,
           }
         }
       });
