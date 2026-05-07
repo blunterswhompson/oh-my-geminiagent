@@ -100,4 +100,30 @@ describe('TranscriptClient', () => {
       expect(result).toEqual({});
     });
   });
+
+  describe('UI Bridge (toastBuffer)', () => {
+    test('showToast adds messages with prefix', () => {
+      const c = new TranscriptClient('dummy.json');
+      (c as any).tui.showToast('Test Toast');
+      expect((c as any).toastBuffer).toEqual(['[OMO] Test Toast']);
+    });
+  });
+
+  describe('getTurnCount', () => {
+    test('returns 1 if file missing', () => {
+      const c = new TranscriptClient('missing.json');
+      expect((c as any).getTurnCount()).toBe(1);
+    });
+
+    test('counts user messages correctly', () => {
+      const mockMessages = [
+        { role: 'user', content: 'h1' },
+        { role: 'assistant', content: 'r1' },
+        { role: 'user', content: 'h2' }
+      ];
+      writeFileSync(TRANSCRIPT_PATH, JSON.stringify({ messages: mockMessages }));
+      const c = new TranscriptClient(TRANSCRIPT_PATH);
+      expect((c as any).getTurnCount()).toBe(2);
+    });
+  });
 });

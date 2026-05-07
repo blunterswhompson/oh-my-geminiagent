@@ -5,8 +5,30 @@ import fs from 'node:fs';
  */
 export class TranscriptClient {
   public pendingPrompts: string[] = [];
+  public toastBuffer: string[] = [];
+
+  public tui = {
+    showToast: (message: string) => {
+      this.toastBuffer.push(`[OMO] ${message}`);
+    }
+  };
 
   constructor(private transcriptPath: string) {}
+
+  public getTurnCount(): number {
+    try {
+      if (!fs.existsSync(this.transcriptPath)) {
+        return 1;
+      }
+      const content = fs.readFileSync(this.transcriptPath, 'utf-8');
+      const transcript = JSON.parse(content);
+      const messages = transcript.messages || [];
+      return messages.filter((m: any) => m.role === 'user').length || 1;
+    } catch (e) {
+      console.error('[TranscriptClient] Error calculating turn count:', e);
+      return 1;
+    }
+  }
 
   public session = {
     /**
