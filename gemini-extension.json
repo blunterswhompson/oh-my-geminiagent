@@ -976,6 +976,48 @@
     "stop-continuation": "commands/stop-continuation.toml",
     "omomomo": "commands/omomomo.toml"
   },
+  "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bun ${extensionPath}/bin/harness-hooks.js SessionStart"
+          }
+        ]
+      }
+    ],
+    "BeforeTool": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bun ${extensionPath}/bin/harness-hooks.js BeforeTool"
+          }
+        ]
+      }
+    ],
+    "AfterTool": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bun ${extensionPath}/bin/harness-hooks.js AfterTool"
+          }
+        ]
+      }
+    ],
+    "AfterAgent": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bun ${extensionPath}/bin/harness-hooks.js AfterAgent"
+          }
+        ]
+      }
+    ]
+  },
   "settings": [
     {
       "name": "Default Model",
