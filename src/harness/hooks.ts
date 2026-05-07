@@ -188,6 +188,13 @@ export async function handleGeminiHook(input: GeminiHookInput): Promise<GeminiHo
       }
       return { status: 'allow' };
 
+    case 'SessionEnd': {
+      const { hooks, managers } = await getPluginInstance(directory, transcriptPath);
+      hooks.disposeHooks();
+      await managers.backgroundManager.cancelAllTasks();
+      return { status: 'allow' };
+    }
+
     default:
       return { status: 'allow' };
   }

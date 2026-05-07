@@ -1026,6 +1026,16 @@
           }
         ]
       }
+    ],
+    "SessionEnd": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bun ${extensionPath}/bin/harness-hooks.js SessionEnd"
+          }
+        ]
+      }
     ]
   },
   "settings": [
