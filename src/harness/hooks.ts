@@ -210,14 +210,30 @@ export async function handleGeminiHook(input: GeminiHookInput): Promise<GeminiHo
         agent: input.data.agent || 'sisyphus',
         model: { providerID: 'gemini', modelID: 'gemini-exp-1206' }
       };
-      
+
+      const prompt = input.data.prompt || '';
       const chatOutput = {
-        message: { role: 'user', content: input.data.prompt || '' },
-        parts: [{ type: 'text', text: input.data.prompt || '' }]
+        message: { role: 'user', content: prompt },
+        parts: [{ type: 'text', text: prompt }]
       };
 
       if (pluginInterface['chat.message']) {
         await pluginInterface['chat.message'](chatInput, chatOutput);
+      }
+
+      // Handle command.execute.before if it's a slash command
+      if (prompt.startsWith('/') && pluginInterface['command.execute.before']) {
+        const parts = prompt.split(' ');
+        const command = parts[0].slice(1);
+        const args = parts.slice(1).join(' ');
+        
+        const commandOutput = { parts: chatOutput.parts, message: chatOutput.message };
+        await pluginInterface['command.execute.before'](
+          { command, sessionID: input.data.sessionID, arguments: args },
+          commandOutput
+        );
+        chatOutput.parts = commandOutput.parts;
+        chatOutput.message = commandOutput.message;
       }
 
       const transformOutput = {
@@ -233,7 +249,7 @@ export async function handleGeminiHook(input: GeminiHookInput): Promise<GeminiHo
 
       const finalContent = transformOutput.messages[0].parts.map((p: any) => p.text).join('\n');
 
-      if (finalContent !== (input.data.prompt || '')) {
+      if (finalContent !== prompt) {
         result = {
           status: 'deny',
           message: finalContent
@@ -291,6 +307,24 @@ export async function handleGeminiHook(input: GeminiHookInput): Promise<GeminiHo
       if (!llm_request || !llm_request.messages) {
         result = { status: 'allow' };
         break;
+      }
+
+      // Map experimental.chat.system.transform
+      if (pluginInterface['experimental.chat.system.transform']) {
+        const systemMessage = llm_request.messages.find((m: any) => m.role === 'system');
+        if (systemMessage) {
+          const systemOutput = { system: [systemMessage.content] };
+          await pluginInterface['experimental.chat.system.transform'](
+            {
+              sessionID: input.data.sessionID,
+              model: { id: llm_request.model, providerID: 'gemini' }
+            },
+            systemOutput
+          );
+          if (systemOutput.system[0] !== systemMessage.content) {
+            systemMessage.content = systemOutput.system[0];
+          }
+        }
       }
 
       // Map chat.params for reasoning effort support
