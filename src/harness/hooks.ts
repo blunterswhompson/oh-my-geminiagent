@@ -7,6 +7,7 @@ import { createEventHandler } from '../plugin/event';
 import { createModelCacheState } from '../plugin-state';
 import { createRuntimeTmuxConfig } from '../create-runtime-tmux-config';
 import { PluginContext } from '../plugin/types';
+import { TranscriptClient } from './transcript-client';
 
 let cachedPluginInstance: any = null;
 
@@ -14,25 +15,31 @@ export function resetPluginInstance() {
   cachedPluginInstance = null;
 }
 
-async function getPluginInstance(directory: string) {
-  if (cachedPluginInstance && cachedPluginInstance.directory === directory) {
+async function getPluginInstance(directory: string, transcriptPath?: string) {
+  if (
+    cachedPluginInstance &&
+    cachedPluginInstance.directory === directory &&
+    cachedPluginInstance.transcriptPath === transcriptPath
+  ) {
     return cachedPluginInstance;
   }
 
-  // Mock client for harness - in a real scenario, this would connect to the MCP server
-  const mockClient = {
-    session: {
-      abort: async () => ({}),
-      prompt: async () => ({}),
-      summarize: async () => ({}),
-      todo: async () => ({ data: [] }),
-      messages: async () => ({ data: [] }),
-    }
-  } as any;
+  // Use TranscriptClient if transcriptPath is provided, otherwise fallback to mock
+  const client = transcriptPath
+    ? new TranscriptClient(transcriptPath)
+    : ({
+        session: {
+          abort: async () => ({}),
+          prompt: async () => ({}),
+          summarize: async () => ({}),
+          todo: async () => ({ data: [] }),
+          messages: async () => ({ data: [] }),
+        },
+      } as any);
 
   const pluginContext: PluginContext = {
     directory,
-    client: mockClient,
+    client,
   };
 
   const pluginConfig = loadPluginConfig(directory, pluginContext);
@@ -80,6 +87,7 @@ async function getPluginInstance(directory: string) {
 
   cachedPluginInstance = {
     directory,
+    transcriptPath,
     eventHandler,
     hooks,
     managers,
@@ -95,7 +103,8 @@ async function getPluginInstance(directory: string) {
  */
 export async function handleGeminiHook(input: GeminiHookInput): Promise<GeminiHookResult> {
   const directory = input.data.directory || process.cwd();
-  const { eventHandler } = await getPluginInstance(directory);
+  const transcriptPath = input.data.transcript_path;
+  const { eventHandler } = await getPluginInstance(directory, transcriptPath);
 
   // Dispatch based on Gemini event type
   switch (input.event) {
@@ -114,7 +123,7 @@ export async function handleGeminiHook(input: GeminiHookInput): Promise<GeminiHo
       return { status: 'allow' };
 
     case 'BeforeTool': {
-      const { hooks } = await getPluginInstance(directory);
+      const { hooks } = await getPluginInstance(directory, transcriptPath);
       if (hooks.commentChecker?.["tool.execute.before"]) {
         await hooks.commentChecker["tool.execute.before"](
           {
@@ -129,7 +138,7 @@ export async function handleGeminiHook(input: GeminiHookInput): Promise<GeminiHo
     }
 
     case 'AfterTool': {
-      const { hooks } = await getPluginInstance(directory);
+      const { hooks } = await getPluginInstance(directory, transcriptPath);
       if (hooks.commentChecker?.["tool.execute.after"]) {
         const outputObj = {
           title: input.data.tool,
@@ -163,6 +172,20 @@ export async function handleGeminiHook(input: GeminiHookInput): Promise<GeminiHo
           }
         }
       });
+      return { status: 'allow' };
+
+    case 'AfterModel':
+      if (input.data.llm_response?.finishReason === 'length') {
+        await eventHandler({
+          event: {
+            type: 'session.error',
+            properties: {
+              sessionID: input.data.sessionID,
+              error: new Error("Token limit reached")
+            }
+          }
+        });
+      }
       return { status: 'allow' };
 
     default:

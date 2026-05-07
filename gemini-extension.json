@@ -1016,6 +1016,16 @@
           }
         ]
       }
+    ],
+    "AfterModel": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bun ${extensionPath}/bin/harness-hooks.js AfterModel"
+          }
+        ]
+      }
     ]
   },
   "settings": [

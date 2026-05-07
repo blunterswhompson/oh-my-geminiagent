@@ -3,6 +3,7 @@ export type GeminiHookType =
   | 'BeforeTool'
   | 'AfterTool'
   | 'AfterAgent'
+  | 'AfterModel'
   | 'Notification'
   | 'PreCompress';
 
