@@ -54,7 +54,13 @@ import {
   execute_skill,
 } from "./tools/skill";
 
+import { loadPluginConfig } from "../plugin-config";
+import { createManagers } from "../create-managers";
+import { createTools } from "../create-tools";
+import { createRuntimeTmuxConfig } from "../create-runtime-tmux-config";
+import { createModelCacheState } from "../plugin-state";
 import { ALL_TOOL_DEFINITIONS } from "./tool-definitions";
+import { resolveDynamicTools } from "./config-bridge";
 
 const server = new Server(
   {
@@ -73,8 +79,9 @@ const server = new Server(
  */
 
 server.setRequestHandler(ListToolsRequestSchema, async () => {
+  const dynamicTools = await resolveDynamicTools();
   return {
-    tools: ALL_TOOL_DEFINITIONS,
+    tools: dynamicTools,
   };
 });
 
@@ -133,8 +140,35 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
         return await execute_background_tool(name, args);
       case "skill":
         return await execute_skill(args);
-      default:
+      default: {
+        // Dynamic tool routing fallback
+        const directory = process.cwd();
+        const pluginConfig = loadPluginConfig(directory, {});
+        const tmuxConfig = createRuntimeTmuxConfig(pluginConfig);
+        const modelCacheState = createModelCacheState();
+
+        const managers = createManagers({
+          ctx: { directory, client: null },
+          pluginConfig,
+          tmuxConfig,
+          modelCacheState,
+          backgroundNotificationHookEnabled: true,
+        });
+
+        const { filteredTools } = await createTools({
+          ctx: { directory, client: null },
+          pluginConfig,
+          managers,
+        });
+
+        const tool = filteredTools[name];
+        if (tool) {
+          return await tool.execute(args, {
+            sessionId: "harness-session", // Placeholder for CLI
+          });
+        }
         throw new Error(`Tool not found: ${name}`);
+      }
     }
   } catch (error) {
     return {
